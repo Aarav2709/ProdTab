@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodsWeb - Daily Reflection</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">MoodsWeb</h1>
+            <nav>
+                <a href="history.html" class="nav-link">View History</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="reflection-card">
+                <div class="date-display">
+                    <span id="current-date"></span>
+                </div>
+
+                <div class="question-section">
+                    <h2 class="question-text" id="daily-question">
+                        Loading your reflection question...
+                    </h2>
+                </div>
+
+                <div class="input-section">
+                    <textarea
+                        id="reflection-input"
+                        placeholder="Take a moment to reflect... Your thoughts are safe here."
+                        rows="8"
+                    ></textarea>
+                </div>
+
+                <div class="actions">
+                    <button id="save-button" class="save-btn">
+                        Save Reflection
+                    </button>
+                    <button id="clear-button" class="clear-btn">
+                        Clear
+                    </button>
+                </div>
+
+                <div id="save-status" class="save-status"></div>
+            </div>
+
+            <div class="today-entries" id="today-entries">
+                <!-- Today's entries will be displayed here -->
+            </div>
+        </main>
+
+        <footer>
+            <p class="tagline">Take time for reflection, one tab at a time.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

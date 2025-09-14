@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodsWeb - Reflection History</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Additional styles specific to history page */
+        .history-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(108, 124, 231, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .export-section {
+            display: flex;
+            gap: var(--spacing-sm);
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border: 2px solid var(--accent-color);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--accent-color);
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: var(--accent-color);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .stats-section {
+            background: var(--card-bg);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-light);
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: block;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: var(--spacing-xs);
+        }
+
+        .entries-container {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+        }
+
+        .date-group {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-light);
+            overflow: hidden;
+        }
+
+        .date-header {
+            background: linear-gradient(45deg, var(--accent-color), #a29bfe);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .entries-for-date {
+            padding: var(--spacing-lg);
+        }
+
+        .history-entry {
+            background: rgba(255, 255, 255, 0.6);
+            padding: var(--spacing-md);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--spacing-md);
+            border-left: 3px solid var(--accent-color);
+            transition: all 0.3s ease;
+        }
+
+        .history-entry:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateX(5px);
+        }
+
+        .history-entry:last-child {
+            margin-bottom: 0;
+        }
+
+        .entry-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+
+        .entry-time {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .entry-question {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--spacing-sm);
+            font-style: italic;
+        }
+
+        .entry-reflection {
+            color: var(--text-primary);
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .no-entries {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-secondary);
+        }
+
+        .no-entries-icon {
+            font-size: 4rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .search-filter {
+            background: var(--card-bg);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-light);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(108, 124, 231, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .history-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .export-section {
+                justify-content: center;
+            }
+
+            .stats-section {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+
+            .stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .stat-number {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <div class="history-header">
+            <div>
+                <a href="index.html" class="back-link">
+                    ← Back to Today
+                </a>
+            </div>
+            <h1 class="logo">Reflection History</h1>
+            <div class="export-section">
+                <button id="export-json" class="export-btn">Export as JSON</button>
+                <button id="export-txt" class="export-btn">Export as Text</button>
+            </div>
+        </div>
+
+        <div class="stats-section" id="stats-section">
+            <div class="stat-item">
+                <span class="stat-number" id="total-entries">0</span>
+                <span class="stat-label">Total Reflections</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="current-streak">0</span>
+                <span class="stat-label">Current Streak</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-number" id="days-active">0</span>
+                <span class="stat-label">Days Active</span>
+            </div>
+        </div>
+
+        <div class="search-filter">
+            <input
+                type="text"
+                id="search-input"
+                class="search-input"
+                placeholder="Search your reflections..."
+            >
+        </div>
+
+        <div class="entries-container" id="entries-container">
+            <!-- Entries will be loaded here -->
+        </div>
+
+        <div class="no-entries" id="no-entries" style="display: none;">
+            <div class="no-entries-icon">📝</div>
+            <h2>No reflections yet</h2>
+            <p>Start your journaling journey by opening a new tab!</p>
+        </div>
+    </div>
+
+    <script src="history.js"></script>
+</body>
+</html>

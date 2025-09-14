@@ -1,0 +1,25 @@
+{
+  "manifest_version": 2,
+  "name": "MoodsWeb",
+  "version": "1.0.0",
+  "description": "A minimalist journaling interface that replaces the new tab page with daily reflection questions.",
+
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+
+  "permissions": [
+    "storage"
+  ],
+
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "author": "MoodsWeb Team",
+  "homepage_url": "https://github.com/Aarav2709/MoodsWeb"
+}
