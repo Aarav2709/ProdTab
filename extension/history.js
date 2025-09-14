@@ -177,7 +177,7 @@ function displayEntries() {
     const noEntriesElement = document.getElementById('no-entries');
 
     if (filteredEntries.length === 0) {
-        container.innerHTML = '';
+        container.textContent = '';
         noEntriesElement.style.display = 'block';
         return;
     }
@@ -187,13 +187,16 @@ function displayEntries() {
     // Group entries by date
     const entriesByDate = groupEntriesByDate(filteredEntries);
 
-    // Create HTML for each date group
-    const html = Object.keys(entriesByDate)
-        .sort((a, b) => b.localeCompare(a)) // Sort dates newest first
-        .map(date => createDateGroupHTML(date, entriesByDate[date]))
-        .join('');
+    // Clear container
+    container.textContent = '';
 
-    container.innerHTML = html;
+    // Create DOM elements for each date group
+    Object.keys(entriesByDate)
+        .sort((a, b) => b.localeCompare(a)) // Sort dates newest first
+        .forEach(date => {
+            const dateGroup = createDateGroupElement(date, entriesByDate[date]);
+            container.appendChild(dateGroup);
+        });
 }
 
 // Group entries by date
@@ -208,43 +211,63 @@ function groupEntriesByDate(entries) {
     }, {});
 }
 
-// Create HTML for a date group
-function createDateGroupHTML(date, entries) {
-    const formattedDate = formatDateForDisplay(date);
-    const entriesHTML = entries
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
-        .map(entry => createEntryHTML(entry))
-        .join('');
+// Create DOM element for a date group
+function createDateGroupElement(date, entries) {
+    const dateGroup = document.createElement('div');
+    dateGroup.className = 'date-group';
 
-    return `
-        <div class="date-group">
-            <div class="date-header">
-                ${formattedDate}
-            </div>
-            <div class="entries-for-date">
-                ${entriesHTML}
-            </div>
-        </div>
-    `;
+    const dateHeader = document.createElement('div');
+    dateHeader.className = 'date-header';
+    dateHeader.textContent = formatDateForDisplay(date);
+
+    const entriesForDate = document.createElement('div');
+    entriesForDate.className = 'entries-for-date';
+
+    entries
+        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .forEach(entry => {
+            const entryElement = createEntryElement(entry);
+            entriesForDate.appendChild(entryElement);
+        });
+
+    dateGroup.appendChild(dateHeader);
+    dateGroup.appendChild(entriesForDate);
+    
+    return dateGroup;
 }
 
-// Create HTML for a single entry
-function createEntryHTML(entry) {
+// Create DOM element for a single entry
+function createEntryElement(entry) {
     const time = new Date(entry.timestamp).toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
     });
 
-    return `
-        <div class="history-entry">
-            <div class="entry-meta">
-                <span class="entry-time">${time}</span>
-            </div>
-            <div class="entry-question">"${entry.question}"</div>
-            <div class="entry-reflection">${escapeHtml(entry.reflection)}</div>
-        </div>
-    `;
+    const historyEntry = document.createElement('div');
+    historyEntry.className = 'history-entry';
+
+    const entryMeta = document.createElement('div');
+    entryMeta.className = 'entry-meta';
+
+    const entryTime = document.createElement('span');
+    entryTime.className = 'entry-time';
+    entryTime.textContent = time;
+
+    const entryQuestion = document.createElement('div');
+    entryQuestion.className = 'entry-question';
+    entryQuestion.textContent = `"${entry.question}"`;
+
+    const entryReflection = document.createElement('div');
+    entryReflection.className = 'entry-reflection';
+    entryReflection.textContent = entry.reflection;
+
+    entryMeta.appendChild(entryTime);
+    historyEntry.appendChild(entryMeta);
+    historyEntry.appendChild(entryQuestion);
+    historyEntry.appendChild(entryReflection);
+
+    return historyEntry;
 }
 
 // Format date for display
@@ -392,13 +415,6 @@ function downloadFile(content, fileName, mimeType) {
 
     // Clean up the URL object
     setTimeout(() => URL.revokeObjectURL(url), 100);
-}
-
-// Escape HTML to prevent XSS
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // Utility function to format date

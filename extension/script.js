@@ -322,36 +322,46 @@ async function loadTodayEntries() {
         const todayEntriesContainer = document.getElementById('today-entries');
 
         if (todayEntries.length === 0) {
-            todayEntriesContainer.innerHTML = '';
+            todayEntriesContainer.textContent = '';
             return;
         }
 
         // Sort by timestamp (newest first).
         todayEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        // Create HTML for today's entries.
-        const entriesHTML = `
-            <div class="today-section">
-                <h3>Today's Reflections</h3>
-                ${todayEntries.map(entry => `
-                    <div class="entry-preview">
-                        <div class="entry-time">
-                            ${new Date(entry.timestamp).toLocaleTimeString('en-US', {
-                                hour: 'numeric',
-                                minute: '2-digit'
-                            })}
-                        </div>
-                        <div class="entry-text">
-                            ${entry.reflection.length > 100
-                                ? entry.reflection.substring(0, 100) + '...'
-                                : entry.reflection}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+        // Create DOM elements safely for today's entries.
+        const todaySection = document.createElement('div');
+        todaySection.className = 'today-section';
 
-        todayEntriesContainer.innerHTML = entriesHTML;
+        const heading = document.createElement('h3');
+        heading.textContent = "Today's Reflections";
+        todaySection.appendChild(heading);
+
+        todayEntries.forEach(entry => {
+            const entryPreview = document.createElement('div');
+            entryPreview.className = 'entry-preview';
+
+            const entryTime = document.createElement('div');
+            entryTime.className = 'entry-time';
+            entryTime.textContent = new Date(entry.timestamp).toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+
+            const entryText = document.createElement('div');
+            entryText.className = 'entry-text';
+            entryText.textContent = entry.reflection.length > 100
+                ? entry.reflection.substring(0, 100) + '...'
+                : entry.reflection;
+
+            entryPreview.appendChild(entryTime);
+            entryPreview.appendChild(entryText);
+            todaySection.appendChild(entryPreview);
+        });
+
+        // Clear and add the new content.
+        todayEntriesContainer.textContent = '';
+        todayEntriesContainer.appendChild(todaySection);
 
     } catch (error) {
         console.error('Error loading today\'s entries:', error);
