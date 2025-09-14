@@ -232,7 +232,7 @@ function createDateGroupElement(date, entries) {
 
     dateGroup.appendChild(dateHeader);
     dateGroup.appendChild(entriesForDate);
-    
+
     return dateGroup;
 }
 
