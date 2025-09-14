@@ -26,6 +26,60 @@ const REFLECTION_QUESTIONS = [
 let currentQuestion = '';
 let currentDate = '';
 
+// Browser API compatibility
+const storageAPI = (() => {
+    if (typeof browser !== 'undefined' && browser.storage) {
+        return browser.storage;
+    } else if (typeof chrome !== 'undefined' && chrome.storage) {
+        return chrome.storage;
+    } else {
+        // Fallback to localStorage with promise-like interface
+        return {
+            local: {
+                get: (keys) => {
+                    return new Promise((resolve) => {
+                        const result = {};
+                        if (Array.isArray(keys)) {
+                            keys.forEach(key => {
+                                const value = localStorage.getItem(key);
+                                if (value) {
+                                    try {
+                                        result[key] = JSON.parse(value);
+                                    } catch (e) {
+                                        result[key] = value;
+                                    }
+                                }
+                            });
+                        } else if (typeof keys === 'object') {
+                            Object.keys(keys).forEach(key => {
+                                const value = localStorage.getItem(key);
+                                if (value) {
+                                    try {
+                                        result[key] = JSON.parse(value);
+                                    } catch (e) {
+                                        result[key] = value;
+                                    }
+                                } else {
+                                    result[key] = keys[key];
+                                }
+                            });
+                        }
+                        resolve(result);
+                    });
+                },
+                set: (items) => {
+                    return new Promise((resolve) => {
+                        Object.keys(items).forEach(key => {
+                            localStorage.setItem(key, JSON.stringify(items[key]));
+                        });
+                        resolve();
+                    });
+                }
+            }
+        };
+    }
+})();
+
 // Initialize the extension when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeExtension();
@@ -124,16 +178,16 @@ async function saveReflection() {
 
     try {
         // Get existing entries
-        const result = await browser.storage.local.get(['entries']);
+        const result = await storageAPI.local.get(['entries']);
         const entries = result.entries || [];
 
         // Add new entry
         entries.push(entry);
 
         // Save back to storage
-        await browser.storage.local.set({ entries: entries });
+        await storageAPI.local.set({ entries: entries });
 
-        showStatus('Reflection saved! 💙', 'success');
+        showStatus('Reflection saved! ✨', 'success');
         input.value = '';
 
         // Refresh today's entries display
@@ -169,7 +223,7 @@ function showStatus(message, type = 'info') {
 // Load and display today's entries
 async function loadTodayEntries() {
     try {
-        const result = await browser.storage.local.get(['entries']);
+        const result = await storageAPI.local.get(['entries']);
         const entries = result.entries || [];
 
         // Filter entries for today

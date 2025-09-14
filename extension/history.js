@@ -2,6 +2,60 @@
 let allEntries = [];
 let filteredEntries = [];
 
+// Browser API compatibility
+const storageAPI = (() => {
+    if (typeof browser !== 'undefined' && browser.storage) {
+        return browser.storage;
+    } else if (typeof chrome !== 'undefined' && chrome.storage) {
+        return chrome.storage;
+    } else {
+        // Fallback to localStorage with promise-like interface
+        return {
+            local: {
+                get: (keys) => {
+                    return new Promise((resolve) => {
+                        const result = {};
+                        if (Array.isArray(keys)) {
+                            keys.forEach(key => {
+                                const value = localStorage.getItem(key);
+                                if (value) {
+                                    try {
+                                        result[key] = JSON.parse(value);
+                                    } catch (e) {
+                                        result[key] = value;
+                                    }
+                                }
+                            });
+                        } else if (typeof keys === 'object') {
+                            Object.keys(keys).forEach(key => {
+                                const value = localStorage.getItem(key);
+                                if (value) {
+                                    try {
+                                        result[key] = JSON.parse(value);
+                                    } catch (e) {
+                                        result[key] = value;
+                                    }
+                                } else {
+                                    result[key] = keys[key];
+                                }
+                            });
+                        }
+                        resolve(result);
+                    });
+                },
+                set: (items) => {
+                    return new Promise((resolve) => {
+                        Object.keys(items).forEach(key => {
+                            localStorage.setItem(key, JSON.stringify(items[key]));
+                        });
+                        resolve();
+                    });
+                }
+            }
+        };
+    }
+})();
+
 // Initialize the history page when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeHistoryPage();
@@ -18,7 +72,7 @@ async function initializeHistoryPage() {
 // Load all entries from storage
 async function loadAllEntries() {
     try {
-        const result = await browser.storage.local.get(['entries']);
+        const result = await storageAPI.local.get(['entries']);
         allEntries = result.entries || [];
         filteredEntries = [...allEntries];
 
@@ -31,9 +85,7 @@ async function loadAllEntries() {
         allEntries = [];
         filteredEntries = [];
     }
-}
-
-// Calculate and display statistics
+}// Calculate and display statistics
 function calculateStats() {
     const totalEntries = allEntries.length;
 
