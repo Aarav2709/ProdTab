@@ -1,2 +1,2 @@
 # MoodsWeb
-MoodsWeb, is a browser extension, where you answer questions with regard to your life.
+MoodsWeb is a minimalist journaling interface that replaces the new tab page with daily reflection questions.
