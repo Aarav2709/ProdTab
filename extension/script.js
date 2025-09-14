@@ -25,6 +25,7 @@ const REFLECTION_QUESTIONS = [
 // Global variables
 let currentQuestion = '';
 let currentDate = '';
+let currentQuestionIndex = 0;
 
 // Browser API compatibility
 const storageAPI = (() => {
@@ -88,9 +89,46 @@ document.addEventListener('DOMContentLoaded', function() {
 // Main initialization function
 function initializeExtension() {
     setCurrentDate();
+    loadSavedTheme();
     loadDailyQuestion();
     loadTodayEntries();
     setupEventListeners();
+}
+
+// Load saved theme preference
+async function loadSavedTheme() {
+    try {
+        const result = await storageAPI.local.get(['theme']);
+        const savedTheme = result.theme || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    } catch (error) {
+        console.error('Error loading theme:', error);
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+}
+
+// Update theme icon
+function updateThemeIcon(theme) {
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+// Toggle theme
+async function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    updateThemeIcon(newTheme);
+
+    try {
+        await storageAPI.local.set({ theme: newTheme });
+    } catch (error) {
+        console.error('Error saving theme:', error);
+    }
 }
 
 // Set the current date display
@@ -110,15 +148,62 @@ function setCurrentDate() {
 }
 
 // Load and display the daily question
-function loadDailyQuestion() {
-    // Use date as seed to get consistent question for the day
-    const questionIndex = getQuestionIndexForDate(currentDate);
-    currentQuestion = REFLECTION_QUESTIONS[questionIndex];
+async function loadDailyQuestion() {
+    try {
+        // Get the current question index from storage or calculate based on date + entries
+        const result = await storageAPI.local.get(['entries', 'lastQuestionDate', 'currentQuestionIndex']);
+        const entries = result.entries || [];
+        const lastQuestionDate = result.lastQuestionDate || '';
+        let questionIndex = result.currentQuestionIndex || 0;
 
-    document.getElementById('daily-question').textContent = currentQuestion;
+        // If it's a new day, reset to date-based question
+        if (lastQuestionDate !== currentDate) {
+            questionIndex = getQuestionIndexForDate(currentDate);
+            currentQuestionIndex = questionIndex;
+            await storageAPI.local.set({
+                lastQuestionDate: currentDate,
+                currentQuestionIndex: questionIndex
+            });
+        } else {
+            currentQuestionIndex = questionIndex;
+        }
+
+        currentQuestion = REFLECTION_QUESTIONS[currentQuestionIndex];
+        document.getElementById('daily-question').textContent = currentQuestion;
+
+    } catch (error) {
+        console.error('Error loading question:', error);
+        // Fallback to date-based question
+        const questionIndex = getQuestionIndexForDate(currentDate);
+        currentQuestion = REFLECTION_QUESTIONS[questionIndex];
+        document.getElementById('daily-question').textContent = currentQuestion;
+    }
 }
 
-// Get question index based on date (ensures same question all day)
+// Advance to next question
+async function advanceToNextQuestion() {
+    currentQuestionIndex = (currentQuestionIndex + 1) % REFLECTION_QUESTIONS.length;
+    currentQuestion = REFLECTION_QUESTIONS[currentQuestionIndex];
+
+    // Update UI with animation
+    const questionElement = document.getElementById('daily-question');
+    questionElement.style.opacity = '0';
+
+    setTimeout(() => {
+        questionElement.textContent = currentQuestion;
+        questionElement.style.opacity = '1';
+    }, 300);
+
+    // Save the new question index
+    try {
+        await storageAPI.local.set({
+            currentQuestionIndex: currentQuestionIndex,
+            lastQuestionDate: currentDate
+        });
+    } catch (error) {
+        console.error('Error saving question index:', error);
+    }
+}// Get question index based on date (ensures same question all day)
 function getQuestionIndexForDate(dateString) {
     // Simple hash function to get consistent index for date
     let hash = 0;
@@ -134,10 +219,12 @@ function getQuestionIndexForDate(dateString) {
 function setupEventListeners() {
     const saveButton = document.getElementById('save-button');
     const clearButton = document.getElementById('clear-button');
+    const themeToggle = document.getElementById('theme-toggle');
     const textArea = document.getElementById('reflection-input');
 
     saveButton.addEventListener('click', saveReflection);
     clearButton.addEventListener('click', clearInput);
+    themeToggle.addEventListener('click', toggleTheme);
 
     // Auto-save while typing (debounced)
     let saveTimeout;
@@ -156,9 +243,7 @@ function setupEventListeners() {
             saveReflection();
         }
     });
-}
-
-// Save reflection entry
+}// Save reflection entry
 async function saveReflection() {
     const input = document.getElementById('reflection-input');
     const reflection = input.value.trim();
@@ -192,6 +277,11 @@ async function saveReflection() {
 
         // Refresh today's entries display
         loadTodayEntries();
+
+        // Advance to next question
+        setTimeout(() => {
+            advanceToNextQuestion();
+        }, 1500);
 
     } catch (error) {
         console.error('Error saving reflection:', error);

@@ -6,74 +6,92 @@
     <title>MoodsWeb - Reflection History</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Additional styles specific to history page */
+        /* Additional styles specific to history page with theme support */
+        body {
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
         .history-container {
             max-width: 1000px;
             margin: 0 auto;
-            padding: var(--spacing-lg);
+            padding: var(--space-8);
         }
 
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--spacing-xl);
+            margin-bottom: var(--space-8);
             flex-wrap: wrap;
-            gap: var(--spacing-sm);
+            gap: var(--space-4);
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
         }
 
         .back-link {
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-xs);
-            color: var(--accent-color);
+            gap: var(--space-2);
+            color: var(--nav-text);
+            background: var(--nav-bg);
             text-decoration: none;
             font-weight: 500;
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border-radius: var(--radius-sm);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--nav-border);
             transition: all 0.3s ease;
         }
 
         .back-link:hover {
-            background-color: rgba(108, 124, 231, 0.1);
+            background: rgba(255, 255, 255, 0.2);
             transform: translateY(-1px);
         }
 
         .export-section {
             display: flex;
-            gap: var(--spacing-sm);
-            flex-wrap: wrap;
+            gap: var(--space-2);
         }
 
         .export-btn {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border: 2px solid var(--accent-color);
-            border-radius: var(--radius-sm);
-            background: transparent;
-            color: var(--accent-color);
-            font-family: var(--font-family);
+            padding: var(--space-2) var(--space-4);
+            border: 2px solid var(--accent-primary);
+            border-radius: var(--radius-md);
+            background: var(--nav-bg);
+            color: var(--nav-text);
+            font-family: var(--font-primary);
             font-size: 0.9rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
         .export-btn:hover {
-            background: var(--accent-color);
+            background: var(--accent-primary);
             color: white;
             transform: translateY(-1px);
         }
 
         .stats-section {
             background: var(--card-bg);
-            padding: var(--spacing-lg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-light);
-            margin-bottom: var(--spacing-lg);
+            padding: var(--space-6);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: var(--space-6);
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
-            gap: var(--spacing-md);
+            gap: var(--space-4);
+            border: 1px solid var(--border-color);
         }
 
         .stat-item {
@@ -83,48 +101,80 @@
         .stat-number {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--accent-color);
+            color: var(--accent-primary);
             display: block;
         }
 
         .stat-label {
             color: var(--text-secondary);
             font-size: 0.9rem;
-            margin-top: var(--spacing-xs);
+            margin-top: var(--space-1);
+        }
+
+        .search-filter {
+            background: var(--card-bg);
+            padding: var(--space-6);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            margin-bottom: var(--space-6);
+            border: 1px solid var(--border-color);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--space-3);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-family: var(--font-primary);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--input-bg);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .entries-container {
             display: flex;
             flex-direction: column;
-            gap: var(--spacing-lg);
+            gap: var(--space-6);
         }
 
         .date-group {
             background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-light);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
             overflow: hidden;
+            border: 1px solid var(--border-color);
         }
 
         .date-header {
-            background: linear-gradient(45deg, var(--accent-color), #a29bfe);
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
             color: white;
-            padding: var(--spacing-md) var(--spacing-lg);
+            padding: var(--space-4) var(--space-6);
             font-size: 1.1rem;
             font-weight: 600;
         }
 
         .entries-for-date {
-            padding: var(--spacing-lg);
+            padding: var(--space-6);
         }
 
         .history-entry {
             background: rgba(255, 255, 255, 0.6);
-            padding: var(--spacing-md);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--spacing-md);
-            border-left: 3px solid var(--accent-color);
+            padding: var(--space-4);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-4);
+            border-left: 3px solid var(--accent-primary);
             transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .history-entry {
+            background: rgba(30, 41, 59, 0.6);
         }
 
         .history-entry:hover {
@@ -132,17 +182,15 @@
             transform: translateX(5px);
         }
 
-        .history-entry:last-child {
-            margin-bottom: 0;
+        [data-theme="dark"] .history-entry:hover {
+            background: rgba(30, 41, 59, 0.8);
         }
 
         .entry-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: var(--spacing-sm);
-            flex-wrap: wrap;
-            gap: var(--spacing-xs);
+            margin-bottom: var(--space-2);
         }
 
         .entry-time {
@@ -154,7 +202,7 @@
         .entry-question {
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--space-2);
             font-style: italic;
         }
 
@@ -166,39 +214,11 @@
 
         .no-entries {
             text-align: center;
-            padding: var(--spacing-xl);
+            padding: var(--space-8);
             color: var(--text-secondary);
-        }
-
-        .no-entries-icon {
-            font-size: 4rem;
-            margin-bottom: var(--spacing-md);
-        }
-
-        .search-filter {
             background: var(--card-bg);
-            padding: var(--spacing-lg);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-light);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .search-input {
-            width: 100%;
-            padding: var(--spacing-sm);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-family: var(--font-family);
-            font-size: var(--font-size-base);
-            color: var(--text-primary);
-            background-color: rgba(255, 255, 255, 0.8);
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(108, 124, 231, 0.1);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-color);
         }
 
         @media (max-width: 768px) {
@@ -231,15 +251,20 @@
 <body>
     <div class="history-container">
         <div class="history-header">
-            <div>
+            <div class="header-left">
                 <a href="index.html" class="back-link">
                     ← Back to Today
                 </a>
             </div>
             <h1 class="logo">Reflection History</h1>
-            <div class="export-section">
-                <button id="export-json" class="export-btn">Export as JSON</button>
-                <button id="export-txt" class="export-btn">Export as Text</button>
+            <div class="header-right">
+                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <div class="export-section">
+                    <button id="export-json" class="export-btn">Export as JSON</button>
+                    <button id="export-txt" class="export-btn">Export as Text</button>
+                </div>
             </div>
         </div>
 

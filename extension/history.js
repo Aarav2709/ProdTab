@@ -63,10 +63,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Main initialization function
 async function initializeHistoryPage() {
+    await loadSavedTheme();
     await loadAllEntries();
     calculateStats();
     displayEntries();
     setupEventListeners();
+}
+
+// Load saved theme preference
+async function loadSavedTheme() {
+    try {
+        const result = await storageAPI.local.get(['theme']);
+        const savedTheme = result.theme || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+    } catch (error) {
+        console.error('Error loading theme:', error);
+        document.documentElement.setAttribute('data-theme', 'light');
+    }
+}
+
+// Update theme icon
+function updateThemeIcon(theme) {
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+// Toggle theme
+async function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+    document.documentElement.setAttribute('data-theme', newTheme);
+    updateThemeIcon(newTheme);
+
+    try {
+        await storageAPI.local.set({ theme: newTheme });
+    } catch (error) {
+        console.error('Error saving theme:', error);
+    }
 }
 
 // Load all entries from storage
@@ -240,12 +277,16 @@ function setupEventListeners() {
     document.getElementById('export-json').addEventListener('click', exportAsJSON);
     document.getElementById('export-txt').addEventListener('click', exportAsText);
 
+    // Theme toggle
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+
     // Search functionality
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', handleSearch);
-}
-
-// Handle search functionality
+}// Handle search functionality
 function handleSearch(event) {
     const searchTerm = event.target.value.toLowerCase().trim();
 
