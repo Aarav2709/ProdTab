@@ -6,28 +6,43 @@
 }
 
 :root {
-    /* Light theme (default) */
-    --primary-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-bg: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    /* Light theme (default) - Clean white/gray */
+    --primary-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
     --card-bg: rgba(255, 255, 255, 0.95);
     --card-shadow: rgba(0, 0, 0, 0.1);
-    --text-primary: #2d3748;
+    --text-primary: #1a202c;
     --text-secondary: #4a5568;
     --text-muted: #718096;
-    --accent-primary: #667eea;
-    --accent-secondary: #764ba2;
+    --accent-primary: #2d3748;
+    --accent-secondary: #4a5568;
     --success-color: #38a169;
     --error-color: #e53e3e;
     --warning-color: #d69e2e;
-    --border-color: rgba(226, 232, 240, 0.8);
-    --nav-text: rgba(255, 255, 255, 0.9);
-    --nav-bg: rgba(255, 255, 255, 0.1);
-    --nav-border: rgba(255, 255, 255, 0.2);
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --input-focus-bg: rgba(255, 255, 255, 0.95);
-    --btn-secondary-bg: rgba(255, 255, 255, 0.2);
-    --btn-secondary-text: #2d3748;
-    --tagline-color: rgba(255, 255, 255, 0.7);
+    --border-color: rgba(0, 0, 0, 0.2);
+
+    /* Navigation and buttons */
+    --nav-text: #1a202c;
+    --nav-bg: rgba(255, 255, 255, 0.8);
+    --nav-border: rgba(0, 0, 0, 0.3);
+    --nav-hover-bg: rgba(0, 0, 0, 0.1);
+
+    /* Inputs */
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-focus-bg: rgba(255, 255, 255, 1);
+    --input-border: rgba(0, 0, 0, 0.3);
+
+    /* Buttons */
+    --btn-primary-bg: #1a202c;
+    --btn-primary-text: #ffffff;
+    --btn-primary-hover: #2d3748;
+    --btn-secondary-bg: rgba(255, 255, 255, 0.8);
+    --btn-secondary-text: #1a202c;
+    --btn-secondary-border: rgba(0, 0, 0, 0.3);
+    --btn-secondary-hover: rgba(0, 0, 0, 0.1);
+
+    /* Logo and tagline */
+    --logo-color: #1a202c;
+    --tagline-color: #4a5568;
 
     /* Shadows */
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
@@ -56,29 +71,46 @@
     --radius-2xl: 1.5rem;
 }
 
-/* Dark theme */
+/* Dark theme - Clean black/dark gray */
 [data-theme="dark"] {
-    --primary-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    --secondary-bg: linear-gradient(135deg, #0f0f23 0%, #16213e 100%);
+    --primary-bg: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     --card-bg: rgba(30, 41, 59, 0.95);
     --card-shadow: rgba(0, 0, 0, 0.3);
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --text-muted: #94a3b8;
-    --accent-primary: #818cf8;
-    --accent-secondary: #a855f7;
+    --accent-primary: #f8fafc;
+    --accent-secondary: #cbd5e1;
     --success-color: #10b981;
     --error-color: #f87171;
     --warning-color: #fbbf24;
-    --border-color: rgba(71, 85, 105, 0.5);
-    --nav-text: rgba(248, 250, 252, 0.9);
+    --border-color: rgba(255, 255, 255, 0.2);
+
+    /* Navigation and buttons */
+    --nav-text: #f8fafc;
     --nav-bg: rgba(30, 41, 59, 0.8);
-    --nav-border: rgba(71, 85, 105, 0.5);
-    --input-bg: rgba(30, 41, 59, 0.8);
-    --input-focus-bg: rgba(30, 41, 59, 0.95);
-    --btn-secondary-bg: rgba(71, 85, 105, 0.3);
-    --btn-secondary-text: #cbd5e1;
-    --tagline-color: rgba(148, 163, 184, 0.8);
+    --nav-border: rgba(255, 255, 255, 0.3);
+    --nav-hover-bg: rgba(255, 255, 255, 0.1);
+
+    /* Inputs */
+    --input-bg: rgba(30, 41, 59, 0.9);
+    --input-focus-bg: rgba(30, 41, 59, 1);
+    --input-border: rgba(255, 255, 255, 0.3);
+
+    /* Buttons */
+    --btn-primary-bg: #f8fafc;
+    --btn-primary-text: #0f172a;
+    --btn-primary-hover: #cbd5e1;
+    --btn-secondary-bg: rgba(30, 41, 59, 0.8);
+    --btn-secondary-text: #f8fafc;
+    --btn-secondary-border: rgba(255, 255, 255, 0.3);
+    --btn-secondary-hover: rgba(255, 255, 255, 0.1);
+
+    /* Logo and tagline */
+    --logo-color: #f8fafc;
+    --tagline-color: #cbd5e1;
+
+    /* Dark shadows */
     --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
@@ -86,25 +118,25 @@
 }/* Import Inter font */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* Body and layout - Fixed height for new tab */
+/* Body and layout - Allow scrolling but optimize for new tab */
 body {
     font-family: var(--font-primary);
     background: var(--primary-bg);
     color: var(--text-primary);
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}/* Main container - Centered and fixed size */
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+}
+
+/* Main container - Allow proper scrolling */
 .container {
     width: 100%;
     max-width: 900px;
-    height: 100vh;
+    min-height: 100vh;
+    margin: 0 auto;
     padding: var(--space-8);
     display: flex;
     flex-direction: column;
@@ -141,11 +173,9 @@ body {
 .logo {
     font-size: 1.75rem;
     font-weight: 700;
-    background: linear-gradient(135deg, var(--nav-text) 0%, rgba(255,255,255,0.7) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--logo-color);
     letter-spacing: -0.025em;
+    text-shadow: none;
 }
 
 .header-actions {
@@ -170,7 +200,7 @@ body {
 }
 
 .theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--nav-hover-bg);
     transform: translateY(-2px);
 }
 
@@ -193,8 +223,7 @@ body {
 }
 
 .nav-link:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: rgba(255, 255, 255, 1);
+    background: var(--nav-hover-bg);
     transform: translateY(-2px);
 }
 
@@ -270,7 +299,7 @@ body {
     width: 100%;
     min-height: 120px;
     padding: var(--space-4);
-    border: 2px solid var(--border-color);
+    border: 2px solid var(--input-border);
     border-radius: var(--radius-lg);
     font-family: var(--font-primary);
     font-size: 1rem;
@@ -284,8 +313,12 @@ body {
 .reflection-input:focus {
     outline: none;
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
     background: var(--input-focus-bg);
+}
+
+[data-theme="dark"] .reflection-input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .reflection-input::placeholder {
@@ -315,12 +348,13 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-    color: white;
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
     box-shadow: var(--shadow-md);
 }
 
 .btn-primary:hover {
+    background: var(--btn-primary-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
@@ -332,12 +366,12 @@ body {
 .btn-secondary {
     background: var(--btn-secondary-bg);
     color: var(--btn-secondary-text);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--btn-secondary-border);
     backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--btn-secondary-hover);
     transform: translateY(-1px);
 }
 
@@ -455,11 +489,6 @@ body {
 .nav-link:focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
-}
-
-/* Remove all scrollbars */
-html, body {
-    overflow: hidden;
 }
 
 /* Smooth transitions for all interactive elements */
