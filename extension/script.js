@@ -1,4 +1,4 @@
-// Predefined reflection questions
+// Predefined reflection questions.
 const REFLECTION_QUESTIONS = [
     "What are you grateful for today?",
     "What's on your mind?",
@@ -22,19 +22,19 @@ const REFLECTION_QUESTIONS = [
     "How did you grow today?"
 ];
 
-// Global variables
+// Global variables.
 let currentQuestion = '';
 let currentDate = '';
 let currentQuestionIndex = 0;
 
-// Browser API compatibility
+// Browser API compatibility.
 const storageAPI = (() => {
     if (typeof browser !== 'undefined' && browser.storage) {
         return browser.storage;
     } else if (typeof chrome !== 'undefined' && chrome.storage) {
         return chrome.storage;
     } else {
-        // Fallback to localStorage with promise-like interface
+                                // Fallback to localStorage with promise-like interface.
         return {
             local: {
                 get: (keys) => {
@@ -81,12 +81,12 @@ const storageAPI = (() => {
     }
 })();
 
-// Initialize the extension when DOM is loaded
+// Initialize the extension when DOM is loaded.
 document.addEventListener('DOMContentLoaded', function() {
     initializeExtension();
 });
 
-// Main initialization function
+// Main initialization function.
 function initializeExtension() {
     setCurrentDate();
     loadSavedTheme();
@@ -95,7 +95,7 @@ function initializeExtension() {
     setupEventListeners();
 }
 
-// Load saved theme preference
+// Load saved theme preference.
 async function loadSavedTheme() {
     try {
         const result = await storageAPI.local.get(['theme']);
@@ -108,7 +108,7 @@ async function loadSavedTheme() {
     }
 }
 
-// Update theme icon
+// Update theme icon.
 function updateThemeIcon(theme) {
     const themeIcon = document.querySelector('.theme-icon');
     if (themeIcon) {
@@ -116,7 +116,7 @@ function updateThemeIcon(theme) {
     }
 }
 
-// Toggle theme
+// Toggle theme.
 async function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -131,7 +131,7 @@ async function toggleTheme() {
     }
 }
 
-// Set the current date display
+// Set the current date display.
 function setCurrentDate() {
     const now = new Date();
     currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -147,7 +147,7 @@ function setCurrentDate() {
         now.toLocaleDateString('en-US', options);
 }
 
-// Load and display the daily question
+// Load and display the daily question.
 async function loadDailyQuestion() {
     try {
         // Get the current question index from storage or calculate based on date + entries
@@ -156,7 +156,7 @@ async function loadDailyQuestion() {
         const lastQuestionDate = result.lastQuestionDate || '';
         let questionIndex = result.currentQuestionIndex || 0;
 
-        // If it's a new day, reset to date-based question
+        // If it's a new day, reset to date-based question.
         if (lastQuestionDate !== currentDate) {
             questionIndex = getQuestionIndexForDate(currentDate);
             currentQuestionIndex = questionIndex;
@@ -173,19 +173,19 @@ async function loadDailyQuestion() {
 
     } catch (error) {
         console.error('Error loading question:', error);
-        // Fallback to date-based question
+        // Fallback to date-based question.
         const questionIndex = getQuestionIndexForDate(currentDate);
         currentQuestion = REFLECTION_QUESTIONS[questionIndex];
         document.getElementById('daily-question').textContent = currentQuestion;
     }
 }
 
-// Advance to next question
+// Advance to next question.
 async function advanceToNextQuestion() {
     currentQuestionIndex = (currentQuestionIndex + 1) % REFLECTION_QUESTIONS.length;
     currentQuestion = REFLECTION_QUESTIONS[currentQuestionIndex];
 
-    // Update UI with animation
+    // Update UI with animation.
     const questionElement = document.getElementById('daily-question');
     questionElement.style.opacity = '0';
 
@@ -194,7 +194,7 @@ async function advanceToNextQuestion() {
         questionElement.style.opacity = '1';
     }, 300);
 
-    // Save the new question index
+    // Save the new question index.
     try {
         await storageAPI.local.set({
             currentQuestionIndex: currentQuestionIndex,
@@ -203,19 +203,19 @@ async function advanceToNextQuestion() {
     } catch (error) {
         console.error('Error saving question index:', error);
     }
-}// Get question index based on date (ensures same question all day)
+}// Get question index based on date (ensures same question all day).
 function getQuestionIndexForDate(dateString) {
-    // Simple hash function to get consistent index for date
+    // Simple hash function to get consistent index for date.
     let hash = 0;
     for (let i = 0; i < dateString.length; i++) {
         const char = dateString.charCodeAt(i);
         hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32-bit integer
+        hash = hash & hash; // Convert to 32-bit integer.
     }
     return Math.abs(hash) % REFLECTION_QUESTIONS.length;
 }
 
-// Set up event listeners
+// Set up event listeners.
 function setupEventListeners() {
     const saveButton = document.getElementById('save-button');
     const clearButton = document.getElementById('clear-button');
@@ -226,24 +226,24 @@ function setupEventListeners() {
     clearButton.addEventListener('click', clearInput);
     themeToggle.addEventListener('click', toggleTheme);
 
-    // Auto-save while typing (debounced)
+    // Auto-save while typing (debounced).
     let saveTimeout;
     textArea.addEventListener('input', function() {
         clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => {
             if (textArea.value.trim()) {
-                showStatus('Auto-saving...', 'info');
+                showStatus('Auto-saving.', 'info');
             }
         }, 2000);
     });
 
-    // Save on Enter + Ctrl/Cmd
+    // Save on Enter + Ctrl/Cmd.
     textArea.addEventListener('keydown', function(e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             saveReflection();
         }
     });
-}// Save reflection entry
+}// Save reflection entry.
 async function saveReflection() {
     const input = document.getElementById('reflection-input');
     const reflection = input.value.trim();
@@ -262,23 +262,23 @@ async function saveReflection() {
     };
 
     try {
-        // Get existing entries
+        // Get existing entries.
         const result = await storageAPI.local.get(['entries']);
         const entries = result.entries || [];
 
-        // Add new entry
+        // Add new entry.
         entries.push(entry);
 
-        // Save back to storage
+        // Save back to storage.
         await storageAPI.local.set({ entries: entries });
 
         showStatus('Reflection saved! ✨', 'success');
         input.value = '';
 
-        // Refresh today's entries display
+        // Refresh today's entries display.
         loadTodayEntries();
 
-        // Advance to next question
+        // Advance to next question.
         setTimeout(() => {
             advanceToNextQuestion();
         }, 1500);
@@ -289,7 +289,7 @@ async function saveReflection() {
     }
 }
 
-// Clear the input
+// Clear the input.
 function clearInput() {
     const input = document.getElementById('reflection-input');
     input.value = '';
@@ -297,26 +297,26 @@ function clearInput() {
     input.focus();
 }
 
-// Show status message
+// Show status message.
 function showStatus(message, type = 'info') {
     const statusElement = document.getElementById('save-status');
     statusElement.textContent = message;
     statusElement.className = `save-status ${type}`;
 
-    // Clear status after 3 seconds
+    // Clear status after 3 seconds.
     setTimeout(() => {
         statusElement.textContent = '';
         statusElement.className = 'save-status';
     }, 3000);
 }
 
-// Load and display today's entries
+// Load and display today's entries.
 async function loadTodayEntries() {
     try {
         const result = await storageAPI.local.get(['entries']);
         const entries = result.entries || [];
 
-        // Filter entries for today
+        // Filter entries for today.
         const todayEntries = entries.filter(entry => entry.date === currentDate);
 
         const todayEntriesContainer = document.getElementById('today-entries');
@@ -326,10 +326,10 @@ async function loadTodayEntries() {
             return;
         }
 
-        // Sort by timestamp (newest first)
+        // Sort by timestamp (newest first).
         todayEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
-        // Create HTML for today's entries
+        // Create HTML for today's entries.
         const entriesHTML = `
             <div class="today-section">
                 <h3>Today's Reflections</h3>
@@ -358,7 +358,7 @@ async function loadTodayEntries() {
     }
 }
 
-// Utility function to format date for display
+// Utility function to format date for display.
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -368,7 +368,7 @@ function formatDate(dateString) {
     });
 }
 
-// Export functions for potential use in other files
+// Export functions for potential use in other files.
 window.MoodsWeb = {
     REFLECTION_QUESTIONS,
     saveReflection,

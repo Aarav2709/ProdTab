@@ -1,15 +1,15 @@
-// History page JavaScript for MoodsWeb extension
+// History page JavaScript for MoodsWeb extension.
 let allEntries = [];
 let filteredEntries = [];
 
-// Browser API compatibility
+// Browser API compatibility.
 const storageAPI = (() => {
     if (typeof browser !== 'undefined' && browser.storage) {
         return browser.storage;
     } else if (typeof chrome !== 'undefined' && chrome.storage) {
         return chrome.storage;
     } else {
-        // Fallback to localStorage with promise-like interface
+        // Fallback to localStorage with promise-like interface.
         return {
             local: {
                 get: (keys) => {
@@ -56,12 +56,12 @@ const storageAPI = (() => {
     }
 })();
 
-// Initialize the history page when DOM is loaded
+// Initialize the history page when DOM is loaded.
 document.addEventListener('DOMContentLoaded', function() {
     initializeHistoryPage();
 });
 
-// Main initialization function
+// Main initialization function.
 async function initializeHistoryPage() {
     await loadSavedTheme();
     await loadAllEntries();
@@ -70,7 +70,7 @@ async function initializeHistoryPage() {
     setupEventListeners();
 }
 
-// Load saved theme preference
+// Load saved theme preference.
 async function loadSavedTheme() {
     try {
         const result = await storageAPI.local.get(['theme']);
@@ -83,7 +83,7 @@ async function loadSavedTheme() {
     }
 }
 
-// Update theme icon
+// Update theme icon.
 function updateThemeIcon(theme) {
     const themeIcon = document.querySelector('.theme-icon');
     if (themeIcon) {
@@ -91,7 +91,7 @@ function updateThemeIcon(theme) {
     }
 }
 
-// Toggle theme
+// Toggle theme.
 async function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -106,14 +106,14 @@ async function toggleTheme() {
     }
 }
 
-// Load all entries from storage
+// Load all entries from storage.
 async function loadAllEntries() {
     try {
         const result = await storageAPI.local.get(['entries']);
         allEntries = result.entries || [];
         filteredEntries = [...allEntries];
 
-        // Sort entries by timestamp (newest first)
+        // Sort entries by timestamp (newest first).
         allEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
         filteredEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
@@ -122,28 +122,28 @@ async function loadAllEntries() {
         allEntries = [];
         filteredEntries = [];
     }
-}// Calculate and display statistics
+}// Calculate and display statistics.
 function calculateStats() {
     const totalEntries = allEntries.length;
 
-    // Calculate unique days with entries
+    // Calculate unique days with entries.
     const uniqueDates = new Set(allEntries.map(entry => entry.date));
     const daysActive = uniqueDates.size;
 
-    // Calculate current streak
+    // Calculate current streak.
     const currentStreak = calculateCurrentStreak();
 
-    // Update DOM
+    // Update DOM.
     document.getElementById('total-entries').textContent = totalEntries;
     document.getElementById('current-streak').textContent = currentStreak;
     document.getElementById('days-active').textContent = daysActive;
 }
 
-// Calculate current streak of consecutive days
+// Calculate current streak of consecutive days.
 function calculateCurrentStreak() {
     if (allEntries.length === 0) return 0;
 
-    // Get unique dates sorted from newest to oldest
+    // Get unique dates sorted from newest to oldest.
     const uniqueDates = [...new Set(allEntries.map(entry => entry.date))].sort((a, b) => b.localeCompare(a));
 
     if (uniqueDates.length === 0) return 0;
@@ -152,11 +152,11 @@ function calculateCurrentStreak() {
     const today = new Date().toISOString().split('T')[0];
     let currentDate = new Date(today);
 
-    // Start checking from today or the most recent entry date
+    // Start checking from today or the most recent entry date.
     const startDate = uniqueDates.includes(today) ? today : uniqueDates[0];
     currentDate = new Date(startDate);
 
-    // Count consecutive days
+    // Count consecutive days.
     for (let i = 0; i < uniqueDates.length; i++) {
         const dateString = currentDate.toISOString().split('T')[0];
 
