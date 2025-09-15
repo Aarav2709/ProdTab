@@ -1,3 +1,271 @@
+[data-theme="dark"] .xp-streak-box {
+    border: 2px solid #fff !important;
+}
+.xp-streak-box-separated {
+    margin-top: 4rem !important;
+}
+/* Center header row and XP box */
+.center-header-row {
+    justify-content: center !important;
+    gap: 2.5rem;
+}
+.header-actions {
+    justify-content: center;
+}
+.xp-streak-box {
+    background: var(--card-bg);
+    border-radius: 1.5rem;
+    box-shadow: var(--shadow-md);
+    padding: var(--space-4) var(--space-8);
+    margin: 0 auto 2.5rem auto;
+    max-width: 420px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* Centered XP/Level/Streak bar below header */
+.xp-streak-bar-centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+    font-size: 1.13rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    margin: 0 0 2.5rem 0;
+}
+.xp-streak-bar-centered .xp-streak-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.xp-streak-bar-centered .streak-emoji {
+    font-size: 1.1em;
+    margin-left: 0.1em;
+}
+
+/* Pure black dark mode */
+[data-theme="dark"] {
+    --primary-bg: #000 !important;
+    --card-bg: #000 !important;
+    --card-shadow: rgba(0, 0, 0, 0.5);
+    --text-primary: #fff;
+    --text-secondary: #cbd5e1;
+    --text-muted: #888;
+    --accent-primary: #fff;
+    --accent-secondary: #cbd5e1;
+    --success-color: #10b981;
+    --error-color: #f87171;
+    --warning-color: #fbbf24;
+    --border-color: #222;
+
+    /* Navigation and buttons */
+    --nav-text: #fff;
+    --nav-bg: #18181b;
+    --nav-border: #333;
+    --nav-hover-bg: #232323;
+
+    /* Inputs */
+    --input-bg: #232323;
+    --input-focus-bg: #18181b;
+    --input-border: #333;
+
+    /* Buttons */
+    --btn-primary-bg: #fff;
+    --btn-primary-text: #000;
+    --btn-primary-hover: #cbd5e1;
+    --btn-secondary-bg: #18181b;
+    --btn-secondary-text: #fff;
+    --btn-secondary-border: #333;
+    --btn-secondary-hover: #232323;
+
+    /* Logo and tagline */
+    --logo-color: #fff;
+    --tagline-color: #cbd5e1;
+
+    /* Dark shadows */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7), 0 10px 10px -5px rgba(0, 0, 0, 0.5);
+}
+
+/* Bigger, more open footer */
+.footer-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 3.5rem;
+    margin-bottom: 2.5rem;
+}
+.footer-divider {
+    width: 100%;
+    max-width: 700px;
+    border: none;
+    border-top: 2.5px solid var(--border-color);
+    margin-bottom: 1.8rem;
+}
+.tagline {
+    color: var(--tagline-color);
+    font-size: 1.18rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0;
+    text-align: center;
+}
+/* Open, modern header */
+.open-header {
+    background: none;
+    box-shadow: none;
+    padding: var(--space-6) 0 var(--space-2) 0;
+    margin-bottom: var(--space-2);
+}
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 2rem;
+}
+.open-header .logo {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--logo-color);
+    letter-spacing: -0.03em;
+    margin: 0;
+}
+.open-header .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+.open-xp-streak-header {
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    gap: 2.5rem;
+    font-size: 1.1rem;
+}
+
+/* Spacious, floating reflection card */
+.open-reflection-card {
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+    min-height: 380px;
+    max-width: 600px;
+    box-shadow: 0 8px 32px 0 rgba(60,60,90,0.10), 0 1.5px 6px 0 rgba(60,60,90,0.08);
+    border-radius: 2rem;
+    padding: var(--space-8) var(--space-8) var(--space-6) var(--space-8);
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+}
+.open-reflection-card .date-section {
+    margin-bottom: var(--space-3);
+}
+.open-reflection-card .question-section {
+    margin-bottom: var(--space-6);
+}
+.open-reflection-card .input-section {
+    margin-bottom: var(--space-6);
+}
+.open-reflection-card .reflection-input {
+    min-height: 140px;
+    font-size: 1.08rem;
+    padding: var(--space-4);
+    border-radius: 1.2rem;
+}
+.open-reflection-card .actions {
+    margin-bottom: var(--space-2);
+}
+
+/* Footer more open */
+.footer-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+.footer-divider {
+    width: 100%;
+    max-width: 600px;
+    border: none;
+    border-top: 1.5px solid var(--border-color);
+    margin-bottom: 1.2rem;
+}
+.tagline {
+    color: var(--tagline-color);
+    font-size: 1.08rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    margin: 0;
+}
+/* XP, Level, and Streak in header */
+.xp-streak-header {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--accent-primary);
+    justify-content: flex-end;
+}
+.xp-streak-header .xp-streak-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+.xp-streak-header .streak-emoji {
+    font-size: 1.1em;
+    margin-left: 0.1em;
+}
+
+/* Thin line above footer */
+.footer-divider {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0 0.5rem 0;
+}
+
+/* Move reflection card up and make it bigger */
+.reflection-card-lifted {
+    margin-top: -2.5rem;
+    min-height: 340px;
+    max-width: 540px;
+}
+/* XP bar animation */
+.xp-animate {
+    box-shadow: 0 0 0 4px var(--success-color), var(--shadow-md) !important;
+    transition: box-shadow 0.3s;
+}
+/* XP, Level, and Streak Bar */
+.xp-streak-bar {
+    background: var(--card-bg);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-4) var(--space-8);
+    margin-bottom: var(--space-6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    transition: box-shadow 0.3s;
+}
+.xp-streak-item {
+    color: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
 /* Reset and base styles */
 * {
     margin: 0;
@@ -245,8 +513,9 @@ body {
     border-radius: var(--radius-2xl);
     box-shadow: var(--shadow-xl);
     border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: var(--space-8);
+    padding: var(--space-4);
     width: 100%;
+    max-width: 500px;
     position: relative;
     overflow: hidden;
 }
@@ -264,7 +533,7 @@ body {
 /* Date display */
 .date-section {
     text-align: center;
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-2);
 }
 
 .current-date {
@@ -278,11 +547,11 @@ body {
 /* Question section */
 .question-section {
     text-align: center;
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-4);
 }
 
 .question-text {
-    font-size: 1.5rem;
+    font-size: 1.15rem;
     font-weight: 600;
     color: var(--text-primary);
     line-height: 1.4;
@@ -292,13 +561,13 @@ body {
 
 /* Input section */
 .input-section {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-4);
 }
 
 .reflection-input {
     width: 100%;
     min-height: 120px;
-    padding: var(--space-4);
+    padding: var(--space-3) var(--space-2) var(--space-3) var(--space-3);
     border: 2px solid var(--input-border);
     border-radius: var(--radius-lg);
     font-family: var(--font-primary);
@@ -331,7 +600,7 @@ body {
     display: flex;
     gap: var(--space-4);
     justify-content: center;
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--space-2);
 }
 
 .btn {
@@ -480,6 +749,8 @@ body {
 
     .reflection-input {
         min-height: 100px;
+        padding: var(--space-2);
+        font-size: 0.95rem;
     }
 }
 

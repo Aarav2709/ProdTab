@@ -8,20 +8,28 @@
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <h1 class="logo">MoodsWeb</h1>
-            <div class="header-actions">
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                    <span class="theme-icon">🌙</span>
-                </button>
-                <nav>
-                    <a href="history.html" class="nav-link">View History</a>
-                </nav>
+        <header class="header open-header">
+            <div class="header-row center-header-row">
+                <h1 class="logo">MoodsWeb</h1>
+                <div class="header-actions">
+                    <nav>
+                        <a href="history.html" class="nav-link">History</a>
+                    </nav>
+                    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
             </div>
+    </header>
+    <div class="xp-streak-bar-centered xp-streak-box xp-streak-box-separated">
+            <span class="xp-streak-item">Level: <span id="level-value">1</span></span>
+            <span class="xp-streak-item">XP: <span id="xp-value">0</span>/<span id="xp-max">100</span></span>
+            <span class="xp-streak-item">Streak: <span id="streak-value">0</span> <span class="streak-emoji">🔥</span></span>
+        </div>
         </header>
 
         <main class="main-content">
-            <div class="reflection-card">
+            <div class="reflection-card reflection-card-lifted open-reflection-card">
                 <div class="date-section">
                     <div class="current-date" id="current-date"></div>
                 </div>
@@ -59,7 +67,10 @@
         </main>
 
         <footer class="footer">
-            <p class="tagline">Take time for reflection, one tab at a time.</p>
+            <div class="footer-content">
+                <hr class="footer-divider" />
+                <p class="tagline">Take time for reflection, one tab at a time.</p>
+            </div>
         </footer>
     </div>
 

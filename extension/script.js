@@ -26,6 +26,10 @@ const REFLECTION_QUESTIONS = [
 let currentQuestion = '';
 let currentDate = '';
 let currentQuestionIndex = 0;
+let currentXP = 0;
+let currentLevel = 1;
+let currentStreak = 0;
+let lastEntryDate = '';
 
 // Browser API compatibility.
 const storageAPI = (() => {
@@ -91,6 +95,7 @@ function initializeExtension() {
     setCurrentDate();
     loadSavedTheme();
     loadDailyQuestion();
+    loadXPAndStreak();
     loadTodayEntries();
     setupEventListeners();
 }
@@ -262,17 +267,64 @@ async function saveReflection() {
     };
 
     try {
-        // Get existing entries.
-        const result = await storageAPI.local.get(['entries']);
+        // Get existing entries and XP/streak data.
+        const result = await storageAPI.local.get(['entries', 'xp', 'level', 'streak', 'lastEntryDate']);
         const entries = result.entries || [];
+        let xp = result.xp || 0;
+        let level = result.level || 1;
+        let streak = result.streak || 0;
+        let lastDate = result.lastEntryDate || '';
 
         // Add new entry.
         entries.push(entry);
 
+        // XP logic: +10 XP per entry, level up every 100 XP
+        xp += 10;
+        if (xp >= level * 100) {
+            level += 1;
+            showStatus('Level up! 🎉', 'success');
+        }
+
+        // Streak logic: +1 if yesterday or today, reset if gap
+        const today = currentDate;
+        let streakIncreased = false;
+        if (lastDate) {
+            const last = new Date(lastDate);
+            const curr = new Date(today);
+            const diff = (curr - last) / (1000 * 60 * 60 * 24);
+            if (diff === 1) {
+                streak += 1;
+                streakIncreased = true;
+            } else if (diff === 0) {
+                // Same day, streak unchanged
+            } else {
+                streak = 1;
+                streakIncreased = true;
+            }
+        } else {
+            streak = 1;
+            streakIncreased = true;
+        }
+
         // Save back to storage.
-        await storageAPI.local.set({ entries: entries });
+        await storageAPI.local.set({
+            entries: entries,
+            xp: xp,
+            level: level,
+            streak: streak,
+            lastEntryDate: today
+        });
+
+        currentXP = xp;
+        currentLevel = level;
+        currentStreak = streak;
+        lastEntryDate = today;
+        updateXPStreakUI();
 
         showStatus('Reflection saved! ✨', 'success');
+        if (streakIncreased && streak > 1) {
+            showStatus(`Streak: ${streak} days! 🔥`, 'success');
+        }
         input.value = '';
 
         // Refresh today's entries display.
@@ -385,3 +437,36 @@ window.MoodsWeb = {
     clearInput,
     loadTodayEntries
 };
+
+// Load XP and streak from storage
+async function loadXPAndStreak() {
+    try {
+        const result = await storageAPI.local.get(['xp', 'level', 'streak', 'lastEntryDate']);
+        currentXP = result.xp || 0;
+        currentLevel = result.level || 1;
+        currentStreak = result.streak || 0;
+        lastEntryDate = result.lastEntryDate || '';
+        updateXPStreakUI();
+    } catch (error) {
+        currentXP = 0;
+        currentLevel = 1;
+        currentStreak = 0;
+        lastEntryDate = '';
+        updateXPStreakUI();
+    }
+}
+
+// Update XP, level, and streak UI
+function updateXPStreakUI() {
+    const xpElem = document.getElementById('xp-value');
+    const levelElem = document.getElementById('level-value');
+    const streakElem = document.getElementById('streak-value');
+    const xpMaxElem = document.getElementById('xp-max');
+    if (levelElem) levelElem.textContent = currentLevel;
+    if (xpElem && xpMaxElem) {
+        const xpForLevel = currentLevel * 100;
+        xpElem.textContent = currentXP % xpForLevel;
+        xpMaxElem.textContent = xpForLevel;
+    }
+    if (streakElem) streakElem.textContent = currentStreak;
+}

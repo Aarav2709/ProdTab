@@ -23,11 +23,19 @@
 
         .history-header {
             display: flex;
-            justify-content: space-between;
+            flex-direction: row;
+            justify-content: center;
             align-items: center;
+            gap: 2.5rem;
             margin-bottom: var(--space-8);
-            flex-wrap: wrap;
-            gap: var(--space-4);
+            flex-wrap: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .history-header {
+                flex-direction: column;
+                gap: 1.2rem;
+            }
         }
 
         .header-left, .header-right {
@@ -250,20 +258,13 @@
 <body>
     <div class="history-container">
         <div class="history-header">
-            <div class="header-left">
-                <a href="index.html" class="back-link">
-                    ← Back to Today
-                </a>
-            </div>
+            <a href="index.html" class="back-link">← Back to Today</a>
             <h1 class="logo">Reflection History</h1>
-            <div class="header-right">
-                <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
-                    <span class="theme-icon">🌙</span>
-                </button>
-                <div class="export-section">
-                    <button id="export-json" class="export-btn">Export as JSON</button>
-                    <button id="export-txt" class="export-btn">Export as Text</button>
-                </div>
+            <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+                <span class="theme-icon">🌙</span>
+            </button>
+            <div class="export-section">
+                <button id="export-json" class="export-btn">Export as JSON</button>
             </div>
         </div>
 
