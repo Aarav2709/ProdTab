@@ -1,5 +1,6 @@
 :root {
 	--background: #18191a;
+	--notepad-line-height: 26px;
 	--card: rgba(20, 20, 20, 0.98);
 	--card-hover: rgba(30, 30, 30, 1);
 	--button: #111;
@@ -44,7 +45,7 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
-	overflow: hidden;
+	/* allow scroll where needed */
 	scrollbar-width: none;
 }
 
@@ -123,89 +124,154 @@ body {
 	text-shadow: none;
 }
 
+.centered-title {
+	color: var(--title);
+	font-size: 20px;
+	font-weight: 600;
+	padding-bottom: 18px;
+	letter-spacing: 0.5px;
+	text-shadow: none;
+	text-align: center;
+}
+
 .links-grid {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
-	grid-template-rows: repeat(5, 1fr);
-	gap: 10px;
-	padding: 3px;
+	grid-auto-rows: 110px; /* larger tiles */
+	gap: 12px;
+	padding: 6px;
 	width: 100%;
 	height: 100%;
 	justify-content: center;
 	overflow-y: scroll;
 }
 
+.section-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+}
+
+.plus-btn {
+	background: #fff;
+	color: #18191a;
+	border: none;
+	border-radius: 50%;
+	width: 34px;
+	height: 34px;
+	font-size: 20px;
+	font-weight: 700;
+	margin-left: 8px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+.plus-btn:hover { background: #e6e6e6; }
+
 .link-button {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	font-size: 14px;
+	font-size: 13px;
 	color: var(--text);
 	background: var(--button);
-	gap: 1vh;
+	gap: 8px;
 	border: none;
 	border-radius: 10px;
 	cursor: pointer;
-	transition:
-		background-color 0.2s ease,
-		transform 0.05s ease;
-	min-height: 85px;
-	min-width: 85px;
+	transition: background-color 0.2s ease, transform 0.05s ease;
+	min-height: 100px;
+	max-height: 100px;
+	min-width: 100px;
+	max-width: 100px;
+	box-sizing: border-box;
 }
 
-.link-button:active {
-	transform: scale(0.9);
+.link-button svg, .link-button svg.icon {
+	width: 100px;
+	height: 60px;
+	min-width: 28px;
+	min-height: 28px;
 }
 
-.link-button:hover {
-	background: var(--button-hover);
-	color: var(--title);
-	box-shadow: none;
+/* wrapper for each tile so we can position delete button */
+.link-tile {
+	position: relative;
+	display: inline-block;
 }
 
-.link-button svg.icon {
-	width: 24px;
-	height: 24px;
-	min-width: 24px;
-	min-height: 24px;
+.delete-btn {
+	position: absolute;
+	top: -6px;
+	right: -6px;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: rgba(255,255,255,0.08);
+	color: var(--text);
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	cursor: pointer;
+	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
+.delete-btn:hover { background: rgba(255,80,80,0.12); color: #ff6b6b; }
 
 .button-text {
-	overflow: visible;
+	font-size: 12px;
+	color: var(--text-dim);
+	text-align: center;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
-.button-edit-input {
-	font-size: 14px;
-	padding: 5px;
+/* To-do card: title at top, list vertically centered */
+.card > #title {
+	align-self: flex-start;
+}
+.card .checklist {
+	margin-top: 8px;
+	align-self: center;
+}
+
+/* Ensure modal is above everything */
+.modal {
+	z-index: 99999;
+}
+
+/* Notepad: rectangular white-lined box */
+#notepad-wrapper {
+	position: relative;
+	width: 94%;
+	height: 100%;
+	overflow: hidden;
+	display: block;
+	margin: 0 auto;
+}
+
+#notepad {
+	position: relative;
+	z-index: 1;
 	width: 100%;
-	height: 50%;
-	border: none;
-	border-radius: 10px;
+	height: 100%;
+	font-family: "Ubuntu Mono";
+	font-size: 15px;
+	line-height: 1.4;
 	background: #111;
 	color: var(--text);
+	border: 1px solid rgba(255,255,255,0.06);
+	border-radius: 6px;
+	padding: 10px;
+	overflow: auto;
+	resize: none;
 	outline: none;
 }
-
-.link-edit-container {
-	border-radius: 10px;
-	background: rgba(0, 0, 0, 0.07);
-}
-
-#todolist-container {
-	display: flex;
-	align-items: start;
-	justify-content: center;
-	height: 100%;
-	width: 100%;
-}
-
-.move-buttons {
-	display: flex;
-	flex-direction: column;
-	margin-left: 5px;
-}
-
 .move-buttons button {
 	font-size: 16px;
 	line-height: 1;
@@ -319,35 +385,41 @@ button img:hover {
 	justify-content: center;
 }
 
+/* stronger, visible notepad lines behind text */
 #notepad-lines {
 	position: absolute;
-	top: -4px;
-	left: 0;
-	right: 0;
-	height: 100%;
+	left: 12px;
+	right: 12px;
+	top: 12px;
+	bottom: 12px;
 	pointer-events: none;
-	overflow: hidden;
 	z-index: 0;
 	background-image: repeating-linear-gradient(
 		to bottom,
-		transparent 0px,
-		transparent 100px,
-		#fff 27px
+		rgba(255,255,255,0.12) 0px,
+		rgba(255,255,255,0.12) 1px,
+		transparent 1px,
+		transparent calc(var(--notepad-line-height) - 1px)
 	);
-	background-size: 100% 27px;
-	opacity: 0;
+	background-size: 100% var(--notepad-line-height);
+	background-position-y: 10px; /* nudge to remove extra top line */
+	border-radius: 6px;
+	opacity: 1;
 }
 
 #notepad {
 	position: relative;
-	width: 98%;
-	height: 100%;
-	font-family: monospace;
-	font-size: 14px;
-	line-height: 27px;
+	z-index: 1;
+	width: calc(100% - 24px);
+	height: calc(100% - 24px);
+	margin: 12px;
+	font-family: "Ubuntu Mono";
+	font-size: 15px;
+	line-height: 26px;
+	background: transparent;
+	color: var(--text);
 	border: none;
 	outline: none;
-	z-index: 1;
 	overflow: auto;
 	overflow-y: scroll;
 	overscroll-behavior: none;
@@ -381,6 +453,20 @@ textarea {
 	border-radius: 8px;
 }
 
+/* Final overrides: ensure notepad lines are visible behind the textarea */
+#notepad-lines { z-index: 1 !important; }
+#notepad { z-index: 2 !important; background: transparent !important; }
+
+/* Center To-Do title and vertically center the list area */
+.todo-card #title { text-align: center; width: 100%; }
+.todo-card #todolist-container { display: flex; align-items: center; justify-content: center; height: calc(100% - 88px); }
+
+/* Modal tweaks: make it a compact popup and clearly visible */
+.modal { background: rgba(0,0,0,0.55); }
+.modal-content { width: 380px; max-width: 92vw; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+.modal.hidden { display: none; }
+
+
 #clear-completed {
 	display: flex;
 	text-align: center;
@@ -403,6 +489,52 @@ textarea {
 #clear-completed:active {
 	transform: scale(0.8);
 }
+
+/* Clipboard box styling */
+.clipboard-box {
+	margin-bottom: 12px;
+	border: 1px solid rgba(255,255,255,0.04);
+	border-radius: 6px;
+	padding: 8px;
+	background: rgba(255,255,255,0.01);
+}
+
+.clipboard-box .clipboard-actions {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 6px;
+	justify-content: flex-end;
+}
+
+.clipboard-box .clipboard-actions .icon-btn {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: rgba(255,255,255,0.08);
+	color: var(--text);
+	border: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 10px;
+	cursor: pointer;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+	transition: background 0.2s ease;
+}
+
+.clipboard-box .clipboard-actions .icon-btn:hover {
+	background: rgba(255,255,255,0.12);
+}
+
+.clipboard-box .clipboard-actions .btn.small {
+	background: rgba(255,255,255,0.03);
+	font-size: 11px;
+	padding: 4px 8px;
+}
+
+/* Notepad action buttons */
+.clipboard-actions { display: flex; gap: 8px; margin-bottom: 8px; justify-content: flex-end; }
+.clipboard-actions .btn.small { background: rgba(255,255,255,0.03); }
 
 #calendar-container {
 	display: flex;
@@ -607,4 +739,133 @@ header .calendar-current-date {
 	word-break: break-all;
 	padding: 10px;
 	border-radius: 10px;
+}
+
+.plus-btn {
+	background: #fff;
+	color: #18191a;
+	border: none;
+	border-radius: 50%;
+	width: 30px;
+	height: 30px;
+	font-size: 18px;
+	line-height: 28px;
+	font-weight: 700;
+	margin: 0 0 0 8px;
+	cursor: pointer;
+	box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+	transition: background 0.15s, color 0.15s;
+}
+.plus-btn:hover {
+	background: #e6e6e6;
+	color: #000;
+}
+
+.button-edit-input, #new-todo, textarea, input {
+	background: #121213 !important;
+	color: #fff !important;
+	border: 1px solid rgba(255,255,255,0.08) !important;
+	box-shadow: none;
+}
+.button-edit-input:focus, #new-todo:focus, textarea:focus, input:focus {
+	border: 1.5px solid rgba(255,255,255,0.18) !important;
+	outline: none;
+	background: #101012 !important;
+}
+
+/* Modal for adding bookmarks - proper overlay */
+.modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(0,0,0,0.88);
+	z-index: 999999;
+	backdrop-filter: blur(2px);
+}
+.modal.hidden {
+	display: none !important;
+}
+.modal-content {
+	background: #0f0f10;
+	border: 1px solid rgba(255,255,255,0.06);
+	padding: 20px;
+	width: 360px;
+	max-width: 90vw;
+	border-radius: 10px;
+	box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+.modal-content h4 {
+	margin: 0 0 16px 0;
+	color: var(--text);
+	font-size: 18px;
+}
+.modal-content input {
+	width: 100%;
+	margin: 8px 0;
+	padding: 12px;
+	border-radius: 6px;
+	background: #18191a;
+	border: 1px solid rgba(255,255,255,0.06);
+	color: var(--text);
+	font-size: 14px;
+}
+.modal-content input:focus {
+	border-color: rgba(255,255,255,0.2);
+	outline: none;
+}
+.modal-actions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+	margin-top: 16px;
+}
+.btn.small {
+	padding: 10px 16px;
+	border-radius: 6px;
+	border: 1px solid rgba(255,255,255,0.06);
+	background: transparent;
+	color: var(--text);
+	cursor: pointer;
+	font-size: 13px;
+}
+.btn.small:hover {
+	background: rgba(255,255,255,0.05);
+}
+.btn.small.primary {
+	background: white;
+	color: var(--background);
+	border: none;
+}
+.btn.small.primary:hover {
+	background: #e6e6e6;
+}
+
+/* Date format modal styling */
+.date-format-options {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.date-format-btn {
+	padding: 12px;
+	text-align: center;
+	border-radius: 6px;
+	border: 1px solid rgba(255,255,255,0.06);
+	background: rgba(255,255,255,0.02);
+	color: var(--text);
+	cursor: pointer;
+	font-size: 13px;
+	transition: all 0.2s ease;
+}
+
+.date-format-btn:hover {
+	background: rgba(255,255,255,0.08);
+	border-color: rgba(255,255,255,0.12);
 }

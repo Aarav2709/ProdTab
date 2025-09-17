@@ -56,11 +56,11 @@
 				</div>
 			</div>
 			<div class="flex-item">
-				<div class="card">
+				<div class="card todo-card">
 					<button id="clear-completed">
 						<img src="assets/icons/delete.svg" />
 					</button>
-					<p id="title">Todo list</p>
+					<p id="title">To-Do List</p>
 					<div id="todolist-container">
 						<ul id="todolist" class="checklist"></ul>
 					</div>
@@ -69,56 +69,93 @@
 			</div>
 			<div class="flex-item">
 				<div class="card left">
-					<p id="title">Bookmarks</p>
+					<div class="section-header">
+						<p id="title">Bookmarks</p>
+						<button id="add-bookmark" class="plus-btn" title="Add Bookmark">+</button>
+					</div>
 					<div id="links-container" class="links-grid"></div>
+
 				</div>
 				<div class="card right">
-					<p id="title">Clipboard</p>
+					<p class="centered-title">Clipboard</p>
 					<div id="clipboard-container">
-						<div>
-							<textarea
-								id="clipboard-1"
-								spellcheck="false"
-							></textarea>
+						<div class="clipboard-box">
+							<div class="clipboard-actions">
+								<button data-clipboard="clipboard-1" class="clipboard-copy icon-btn" title="Copy">📄</button>
+								<button data-clipboard="clipboard-1" class="clipboard-paste icon-btn" title="Paste">📋</button>
+							</div>
+							<textarea id="clipboard-1" spellcheck="false"></textarea>
 						</div>
-						<div>
-							<textarea
-								id="clipboard-2"
-								spellcheck="false"
-							></textarea>
+						<div class="clipboard-box">
+							<div class="clipboard-actions">
+								<button data-clipboard="clipboard-2" class="clipboard-copy icon-btn" title="Copy">📄</button>
+								<button data-clipboard="clipboard-2" class="clipboard-paste icon-btn" title="Paste">📋</button>
+							</div>
+							<textarea id="clipboard-2" spellcheck="false"></textarea>
 						</div>
-						<div>
-							<textarea
-								id="clipboard-3"
-								spellcheck="false"
-							></textarea>
+						<div class="clipboard-box">
+							<div class="clipboard-actions">
+								<button data-clipboard="clipboard-3" class="clipboard-copy icon-btn" title="Copy">📄</button>
+								<button data-clipboard="clipboard-3" class="clipboard-paste icon-btn" title="Paste">📋</button>
+							</div>
+							<textarea id="clipboard-3" spellcheck="false"></textarea>
 						</div>
-						<div>
-							<textarea
-								id="clipboard-4"
-								spellcheck="false"
-							></textarea>
+						<div class="clipboard-box">
+							<div class="clipboard-actions">
+								<button data-clipboard="clipboard-4" class="clipboard-copy icon-btn" title="Copy">📄</button>
+								<button data-clipboard="clipboard-4" class="clipboard-paste icon-btn" title="Paste">📋</button>
+							</div>
+							<textarea id="clipboard-4" spellcheck="false"></textarea>
 						</div>
-						<div>
-							<textarea
-								id="clipboard-5"
-								spellcheck="false"
-							></textarea>
+						<div class="clipboard-box">
+							<div class="clipboard-actions">
+								<button data-clipboard="clipboard-5" class="clipboard-copy icon-btn" title="Copy">📄</button>
+								<button data-clipboard="clipboard-5" class="clipboard-paste icon-btn" title="Paste">📋</button>
+							</div>
+							<textarea id="clipboard-5" spellcheck="false"></textarea>
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="flex-item">
 				<div class="card">
-					<p id="title">Notepad</p>
+					<p class="centered-title">Notepad</p>
 					<div id="notepad-wrapper">
-						<div id="notepad-lines"></div>
 						<textarea id="notepad" spellcheck="false"></textarea>
 					</div>
 				</div>
 			</div>
 		</div>
 	</body>
+	<!-- Bookmark Add Modal placed outside cards to avoid clipping -->
+	<div id="bookmark-modal" class="modal hidden">
+		<div class="modal-content">
+			<h4>Add bookmark</h4>
+			<input id="modal-name" placeholder="Name (used for icon lookup)" />
+			<input id="modal-url" placeholder="https://example.com" />
+			<div class="modal-actions">
+				<button id="modal-cancel" class="btn small">Cancel</button>
+				<button id="modal-save" class="btn small primary">Save</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Calendar Date Format Modal -->
+	<div id="date-modal" class="modal hidden">
+		<div class="modal-content">
+			<h4>Copy Date Format</h4>
+			<p id="selected-date" style="margin-bottom: 16px; color: var(--text-dim);"></p>
+			<div class="date-format-options">
+				<button class="date-format-btn btn small" data-format="MM/DD/YYYY">MM/DD/YYYY</button>
+				<button class="date-format-btn btn small" data-format="DD/MM/YYYY">DD/MM/YYYY</button>
+				<button class="date-format-btn btn small" data-format="YYYY-MM-DD">YYYY-MM-DD</button>
+				<button class="date-format-btn btn small" data-format="Mon DD, YYYY">Mon DD, YYYY</button>
+			</div>
+			<div class="modal-actions">
+				<button id="date-modal-cancel" class="btn small">Cancel</button>
+			</div>
+		</div>
+	</div>
 	<script
 		language="JavaScript"
 		type="text/javascript"

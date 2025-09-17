@@ -180,6 +180,28 @@ const initializeDateTimeAndCalendar = () => {
     updateDateTime();
     generateCalendar();
     setInterval(updateDateTime, 1000);
+
+    // Add calendar click handler for date format selection and copying
+    dayContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'LI' && !e.target.classList.contains('inactive')) {
+            const day = parseInt(e.target.textContent);
+            const date = new Date(currentYear, currentMonth, day);
+
+            // Store the selected date globally
+            window.selectedCalendarDate = date;
+
+            // Show date format modal
+            const modal = document.getElementById('date-modal');
+            const selectedDateDisplay = document.getElementById('selected-date');
+            selectedDateDisplay.textContent = `Selected: ${date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })}`;
+            modal.classList.remove('hidden');
+        }
+    });
 };
 
 /**********************/
@@ -427,21 +449,93 @@ const fetchSvgOrDefault = async (name) => {
     }
 };
 
+// --- Add Bookmark Button Logic ---
+document.getElementById('add-bookmark').addEventListener('click', () => {
+    // Open modal to add bookmark
+    const modal = document.getElementById('bookmark-modal');
+    const modalName = document.getElementById('modal-name');
+    const modalUrl = document.getElementById('modal-url');
+    modalName.value = '';
+    modalUrl.value = '';
+    modal.classList.remove('hidden');
+    modalName.focus();
+    // prevent background scroll while modal open
+    document.body.style.overflow = 'hidden';
+});
+
+// Modal actions
+document.getElementById('modal-cancel').addEventListener('click', () => {
+    document.getElementById('bookmark-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+});
+document.getElementById('modal-save').addEventListener('click', () => {
+    const name = document.getElementById('modal-name').value.trim();
+    const url = document.getElementById('modal-url').value.trim();
+    if (!name || !url) return;
+
+    // Create button and persist
+    const button = document.createElement('button');
+    button.className = 'link-button';
+    button.textContent = name.toLowerCase();
+    button.dataset.text2 = url;
+
+    // append to DOM, save and re-render
+    // ensure url has http(s)
+    let normalizedUrl = url;
+    if (!/^https?:\/\//i.test(normalizedUrl)) {
+        normalizedUrl = 'https://' + normalizedUrl;
+    }
+
+    const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || '[]');
+    links.push({ text1: button.textContent.toLowerCase(), text2: normalizedUrl });
+    localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
+    document.getElementById('bookmark-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+    initializeGrid();
+});
+
+// Close modal when clicking outside the modal-content
+document.getElementById('bookmark-modal').addEventListener('click', (e) => {
+    const content = document.querySelector('.modal-content');
+    if (!content) return;
+    if (!content.contains(e.target)) {
+        document.getElementById('bookmark-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('bookmark-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+});
+
 const handleButtonClick = (event, button) => {
     event.stopPropagation();
     const link = button.dataset.text2;
+    if (button.classList.contains('editing')) return;
 
-    if (event.altKey) {
-        event.preventDefault();
-        editButton(button);
-    } else if (link) {
-        // Middle click (button 1) or Ctrl+click should open in new tab
-        if (event.button === 1 || event.ctrlKey) {
-            event.preventDefault();
-            window.open(link, "_blank");
-        } else {
-            window.location.href = link;
+    // If bookmark has a link and user holds Ctrl/Cmd, show removal confirmation
+    if (link && (event.ctrlKey || event.metaKey)) {
+        const name = (button.textContent || '').trim();
+        if (confirm(`Remove bookmark "${name}"?`)) {
+            // Remove from storage
+            const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || '[]');
+            const filtered = links.filter(l => !(l.text2 === link && l.text1 === name));
+            localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
+            initializeGrid();
         }
+        return;
+    }
+
+    // Normal click - open link
+    if (link) {
+        window.location.href = link;
     }
 };
 
@@ -489,18 +583,46 @@ const addButtonToGrid = (pair, index, fragment = null) => {
                 });
             })
             .catch((error) => console.error("Error handling SVG:", error));
+    } else {
+        // Empty tile - add placeholder content to maintain size
+        const placeholderDiv = document.createElement("div");
+        placeholderDiv.style.height = "50px"; // Same as icon height
+        placeholderDiv.style.width = "100%";
+        button.appendChild(placeholderDiv);
     }
 
+    // wrapper tile to position delete button
+    const tile = document.createElement('div');
+    tile.className = 'link-tile';
+    tile.appendChild(button);
+
+    // delete button
+    const del = document.createElement('button');
+    del.className = 'delete-btn';
+    del.title = 'Delete';
+    del.innerHTML = '✕';
+    del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // remove this link from storage by matching index or url
+        const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || '[]');
+        const url = button.dataset.text2 || '';
+        const name = (button.textContent || '').trim();
+        const filtered = links.filter(l => !(l.text2 === url && l.text1 === name));
+        localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
+        initializeGrid();
+    });
+
+    tile.appendChild(del);
+
+    // clicking the button opens the link
     button.addEventListener("click", (event) => {
         handleButtonClick(event, button);
     });
-
-    // Also listen for auxclick to catch middle clicks and touchpad gestures
     button.addEventListener("auxclick", (event) => {
         handleButtonClick(event, button);
     });
 
-    (fragment || linksContainer).appendChild(button);
+    (fragment || linksContainer).appendChild(tile);
 };
 
 const saveLinks = () => {
@@ -748,6 +870,47 @@ const initializeNotepad = () => {
     loadContent();
 };
 
+// Individual clipboard copy/paste buttons
+document.querySelectorAll('.clipboard-copy').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        try {
+            const clipboardId = btn.dataset.clipboard;
+            const textarea = document.getElementById(clipboardId);
+            if (textarea && textarea.value) {
+                await navigator.clipboard.writeText(textarea.value);
+                // Visual feedback
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = 'Copy', 1000);
+            }
+        } catch (err) {
+            console.error('Copy failed', err);
+            btn.textContent = 'Error';
+            setTimeout(() => btn.textContent = 'Copy', 1000);
+        }
+    });
+});
+
+document.querySelectorAll('.clipboard-paste').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        try {
+            const paste = await navigator.clipboard.readText();
+            const clipboardId = btn.dataset.clipboard;
+            const textarea = document.getElementById(clipboardId);
+            if (textarea) {
+                textarea.value = paste;
+                textarea.dispatchEvent(new Event('input'));
+                // Visual feedback
+                btn.textContent = 'Pasted!';
+                setTimeout(() => btn.textContent = 'Paste', 1000);
+            }
+        } catch (err) {
+            console.error('Paste failed', err);
+            btn.textContent = 'Error';
+            setTimeout(() => btn.textContent = 'Paste', 1000);
+        }
+    });
+});
+
 /**********************/
 /*       BACKUP       */
 /**********************/
@@ -834,6 +997,70 @@ function initializeLocalStorage() {
         }
     });
 }
+
+/**********************/
+/*   DATE MODAL       */
+/**********************/
+
+// Date format modal handlers
+document.addEventListener('click', (e) => {
+    // Close modal when clicking outside
+    if (e.target.id === 'date-modal') {
+        document.getElementById('date-modal').classList.add('hidden');
+    }
+
+    // Handle date format button clicks
+    if (e.target.classList.contains('date-format-btn')) {
+        const format = e.target.dataset.format;
+        const date = window.selectedCalendarDate;
+
+        if (date) {
+            let formattedDate;
+
+            switch (format) {
+                case 'MM/DD/YYYY':
+                    formattedDate = date.toLocaleDateString('en-US');
+                    break;
+                case 'DD/MM/YYYY':
+                    formattedDate = date.toLocaleDateString('en-GB');
+                    break;
+                case 'YYYY-MM-DD':
+                    formattedDate = date.toISOString().split('T')[0];
+                    break;
+                case 'Mon DD, YYYY':
+                    formattedDate = date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    break;
+                default:
+                    formattedDate = date.toLocaleDateString('en-US');
+            }
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(formattedDate).then(() => {
+                // Visual feedback
+                e.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    e.target.textContent = format;
+                }, 1000);
+            }).catch(console.error);
+
+            // Close modal after short delay
+            setTimeout(() => {
+                document.getElementById('date-modal').classList.add('hidden');
+            }, 1200);
+        }
+    }
+});
+
+// Date modal cancel button
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('date-modal-cancel')?.addEventListener('click', () => {
+        document.getElementById('date-modal').classList.add('hidden');
+    });
+});
 
 document.addEventListener("DOMContentLoaded", () => {
     initializeLocalStorage();
