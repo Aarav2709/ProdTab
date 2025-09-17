@@ -1,4 +1,8 @@
-# MoodsWeb — Minimal New Tab / Startpage
+<h1 align="center">MoodsWeb — Minimal New Tab / Startpage</h1>
+
+<p align="center">
+  <img src="image.png" alt="MoodsWeb screenshot" width="480" />
+</p>
 
 MoodsWeb is a lightweight, distraction‑free browser startpage that brings your daily tools together in a clean, dark, and minimal interface. It's designed for speed and privacy — everything runs completely in your browser and stores data locally using `localStorage`.
 
