@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "ToolsTab",
+    "name": "ProdTab",
     "version": "1.11",
-    "description": "Minimal and responsive browser startpage with useful tools.",
+    "description": "ProdTab — minimal and responsive browser startpage with useful tools.",
     "chrome_url_overrides": {
         "newtab": "index.html"
     },

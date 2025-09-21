@@ -921,7 +921,7 @@ const downloadLocalStorage = () => {
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "toolstab.config.json";
+    a.download = "prodtab.config.json";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
