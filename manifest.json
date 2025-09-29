@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "ProdTab",
-    "version": "1.11",
+    "version": "2.00",
     "description": "ProdTab — minimal and responsive browser startpage with useful tools.",
     "chrome_url_overrides": {
         "newtab": "index.html"
@@ -18,9 +18,11 @@
     "icons": {
         "128": "assets/icons/icon.png"
     },
+    "author": "tribejustice35@gmail.com",
+    "homepage_url": "https://github.com/Aarav2709/ProdTab",
     "browser_specific_settings": {
         "gecko": {
-            "id": "antoniopelusi2000@gmail.com"
+            "id": "{fbbaa869-22c1-452a-bc1d-6a019aac9de8}"
         }
     }
 }
