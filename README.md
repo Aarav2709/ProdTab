@@ -10,14 +10,14 @@ ProdTab is a lightweight, distraction‑free browser startpage that brings your 
 - Tech: Vanilla HTML, CSS, and JavaScript
 - Storage: Browser `localStorage` (no servers, no data leaves your device)
 
-## What’s included
+## What's included
 
-- 📅 Calendar — view the current date and pick a date to copy it in multiple formats
-- ✅ Todo list — simple task list with persistent storage
-- 🔖 Bookmarks — quick links grid with icons and edit/delete controls
-- 📋 Clipboard — 5 small slots for frequently-used text snippets with per-slot copy/paste
-- 📝 Notepad — a simple persistent notes area
-- 🎨 Minimal dark theme — distraction-free, low-contrast design
+- Calendar — view the current date and pick a date to copy it in multiple formats
+- Todo list — simple task list with persistent storage
+- Bookmarks — quick links grid with icons and edit/delete controls
+- Clipboard — 5 small slots for frequently-used text snippets with per-slot copy/paste
+- Notepad — a simple persistent notes area
+- Minimal dark theme — distraction-free, low-contrast design
 
 ## Quick Start
 
@@ -37,7 +37,7 @@ ProdTab is a lightweight, distraction‑free browser startpage that brings your 
 
 ### Clipboard
 
-- Each of the 5 clipboard boxes has its own Copy (📄) and Paste (📋) buttons.
+- Each of the 5 clipboard boxes has its own Copy and Paste buttons.
 - Click Copy to place that box's content into your OS clipboard. Click Paste to insert clipboard contents into that box.
 
 ### Calendar
@@ -64,14 +64,6 @@ This project is intentionally dependency-free.
   - `assets/script.js` — application logic and storage
   - `assets/icons/` — stored icons used for bookmarks
 
-If you want to run a tiny local server for features like clipboard access on some browsers, use Python 3's built-in server from the repository root:
-
-```bash
-# Python 3
-python3 -m http.server 8000
-# Then open http://localhost:8000/index.html
-```
-
 ## Testing Checklist
 
 - Add a bookmark and verify modal closes and tile appears
@@ -91,5 +83,3 @@ python3 -m http.server 8000
 This project uses the LICENSE included in the repository.
 
 ---
-
-Made with focus, privacy, and speed in mind — enjoy ProdTab.
