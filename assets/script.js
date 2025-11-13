@@ -139,28 +139,34 @@ const initializeDateTimeAndCalendar = () => {
         ).getDay();
         const endOffset = (endDayIndex + 6) % 7;
 
-        let daysMarkup = "";
+        const fragment = document.createDocumentFragment();
+        const appendDay = (dayNumber, className = null) => {
+            const listItem = document.createElement("li");
+            if (className) {
+                listItem.className = className;
+            }
+            listItem.textContent = String(dayNumber);
+            fragment.appendChild(listItem);
+        };
 
         for (let i = firstDayOffset; i > 0; i--) {
-            daysMarkup += `<li class="inactive">${prevLastDate - i + 1}</li>`;
+            appendDay(prevLastDate - i + 1, "inactive");
         }
 
         for (let i = 1; i <= lastDate; i++) {
             const isToday =
                 i === today.getDate() &&
                 currentMonth === today.getMonth() &&
-                currentYear === today.getFullYear()
-                    ? "active"
-                    : "";
-            daysMarkup += `<li class="${isToday}">${i}</li>`;
+                currentYear === today.getFullYear();
+            appendDay(i, isToday ? "active" : null);
         }
 
         for (let i = endOffset; i < 6; i++) {
-            daysMarkup += `<li class="inactive">${i - endOffset + 1}</li>`;
+            appendDay(i - endOffset + 1, "inactive");
         }
 
         currDateLabel.innerText = `${months[currentMonth]} ${currentYear}`;
-        dayContainer.innerHTML = daysMarkup;
+        dayContainer.replaceChildren(fragment);
     };
 
     navIcons.forEach((icon) => {
