@@ -196,18 +196,62 @@ const initializeDateTimeAndCalendar = () => {
             // Store the selected date globally
             window.selectedCalendarDate = date;
 
-            // Show date format modal
-            const modal = document.getElementById('date-modal');
-            const selectedDateDisplay = document.getElementById('selected-date');
-            selectedDateDisplay.textContent = `Selected: ${date.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            })}`;
-            modal.classList.remove('hidden');
+            // Check if Shift key is pressed for date copying
+            if (e.shiftKey) {
+                // Show date format modal for copying
+                const dateModal = document.getElementById('date-modal');
+                const selectedDateDisplay = document.getElementById('selected-date');
+                selectedDateDisplay.textContent = `Selected: ${date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })}`;
+                dateModal.classList.remove('hidden');
+            } else {
+                // Show reminder modal by default
+                const modal = document.getElementById('reminder-modal');
+                const reminderDateDisplay = document.getElementById('reminder-date');
+                reminderDateDisplay.textContent = `Reminder for: ${date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                })}`;
+                modal.classList.remove('hidden');
+            }
         }
     });
+
+    // Add visual indicator for dates with reminders
+    const updateCalendarReminders = () => {
+        const reminders = JSON.parse(localStorage.getItem('calendar-reminders') || '[]');
+        const dates = dayContainer.querySelectorAll('li:not(.inactive)');
+
+        dates.forEach(dateEl => {
+            const day = parseInt(dateEl.textContent);
+            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const hasReminder = reminders.some(r => r.date === dateStr);
+
+            if (hasReminder) {
+                dateEl.style.position = 'relative';
+                if (!dateEl.querySelector('.reminder-dot')) {
+                    const dot = document.createElement('span');
+                    dot.className = 'reminder-dot';
+                    dot.style.cssText = 'position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; background: #7c5dff; border-radius: 50%;';
+                    dateEl.appendChild(dot);
+                }
+            }
+        });
+    };
+
+    // Call after generating calendar
+    const originalGenerateCalendar = generateCalendar;
+    generateCalendar = () => {
+        originalGenerateCalendar();
+        setTimeout(updateCalendarReminders, 0);
+    };
+    generateCalendar();
 };
 
 /**********************/
@@ -373,6 +417,19 @@ const initializeTodoList = () => {
 
     newTodoInput.addEventListener("keydown", (e) => {
         if (e.key === "Enter") {
+            e.preventDefault();
+            const text = newTodoInput.value.trim();
+            if (text) {
+                addChecklistItem(text);
+                newTodoInput.value = "";
+                saveChecklist();
+            }
+        }
+    });
+
+    newTodoInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
             const text = newTodoInput.value.trim();
             if (text) {
                 addChecklistItem(text);
@@ -1065,6 +1122,66 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('date-modal-cancel')?.addEventListener('click', () => {
         document.getElementById('date-modal').classList.add('hidden');
+    });
+
+    // Reminder modal handlers
+    const reminderModal = document.getElementById('reminder-modal');
+    const reminderText = document.getElementById('reminder-text');
+    const reminderHour = document.getElementById('reminder-hour');
+    const reminderMinute = document.getElementById('reminder-minute');
+
+    document.getElementById('reminder-cancel')?.addEventListener('click', () => {
+        reminderModal.classList.add('hidden');
+        reminderText.value = '';
+        reminderHour.value = '09';
+        reminderMinute.value = '00';
+    });
+
+    document.getElementById('reminder-save')?.addEventListener('click', () => {
+        const text = reminderText.value.trim();
+        const time = `${reminderHour.value}:${reminderMinute.value}`;
+
+        if (!text) {
+            alert('Please enter reminder text');
+            return;
+        }
+
+        const date = window.selectedCalendarDate;
+        if (!date) return;
+
+        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+        const reminders = JSON.parse(localStorage.getItem('calendar-reminders') || '[]');
+        reminders.push({
+            date: dateStr,
+            text: text,
+            time: time,
+            created: new Date().toISOString()
+        });
+        localStorage.setItem('calendar-reminders', JSON.stringify(reminders));
+
+        reminderModal.classList.add('hidden');
+        reminderText.value = '';
+        reminderHour.value = '09';
+        reminderMinute.value = '00';
+
+        // Refresh calendar to show reminder dot
+        if (typeof initializeDateTimeAndCalendar !== 'undefined') {
+            const event = new CustomEvent('calendar-refresh');
+            document.dispatchEvent(event);
+        }
+
+        alert(`Reminder set for ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`);
+    });
+
+    // Close modals when clicking outside
+    reminderModal?.addEventListener('click', (e) => {
+        if (e.target === reminderModal) {
+            reminderModal.classList.add('hidden');
+            reminderText.value = '';
+            reminderHour.value = '09';
+            reminderMinute.value = '00';
+        }
     });
 });
 

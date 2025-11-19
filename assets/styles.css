@@ -1,16 +1,24 @@
 :root {
-	--background: #18191a;
+	--background: #000000;
 	--notepad-line-height: 26px;
-	--card: rgba(20, 20, 20, 0.98);
-	--card-hover: rgba(30, 30, 30, 1);
-	--button: #111;
-	--button-hover: #222;
-	--title: #fff;
-	--text: #e0e0e0;
-	--text-dim: #888;
-	--accent: #222;
-	--accent2: #333;
-	--shadow: none;
+	--card: #1a1a1a;
+	--card-hover: #222222;
+	--button: #1a1a1a;
+	--button-hover: #252525;
+	--title: #f5f7fa;
+	--text: #e4e6eb;
+	--text-dim: #9499a3;
+	--accent: #7c5dff;
+	--accent2: #5b45c4;
+	--shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+@font-face {
+	font-family: "Source Serif 4";
+	src: url("fonts/SourceSerif4-Regular.ttf") format("truetype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
 }
 
 @font-face {
@@ -47,10 +55,26 @@
 	box-sizing: border-box;
 	/* allow scroll where needed */
 	scrollbar-width: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+}
+
+*::-webkit-scrollbar {
+	display: none;
+}
+
+/* Allow text selection in input fields and textareas */
+input, textarea, [contenteditable="true"] {
+	user-select: text;
+	-webkit-user-select: text;
+	-moz-user-select: text;
+	-ms-user-select: text;
 }
 
 body {
-	font-family: "Ubuntu", sans-serif;
+	font-family: "Source Serif 4", "Ubuntu", sans-serif;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -67,9 +91,9 @@ body {
 	grid-template-rows: 2fr 3fr;
 	width: 100%;
 	height: 100vh;
-	padding: calc(1vw + 1vh);
-	row-gap: calc(1vw + 1vh);
-	column-gap: calc(1vw + 1vh);
+	padding: calc(1.2vw + 1.2vh);
+	row-gap: calc(1.2vw + 1.2vh);
+	column-gap: calc(1.2vw + 1.2vh);
 	overflow: scroll;
 }
 
@@ -92,17 +116,19 @@ body {
 	align-items: center;
 	width: 100%;
 	height: 100%;
-	padding: 20px;
-	border-radius: 15px;
+	padding: 22px;
+	border-radius: 18px;
 	background: var(--card);
-	transition: background-color ease 0.2s;
-	box-shadow: none;
-	border: none;
+	transition: background-color ease 0.2s, box-shadow ease 0.2s, border-color ease 0.2s, transform 0.2s ease;
+	box-shadow: var(--shadow);
+	border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .card:hover {
-	border: none;
+	border: 1px solid rgba(124, 93, 255, 0.3);
 	background: var(--card-hover);
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+	transform: translateY(-1px);
 }
 
 .card.left {
@@ -121,7 +147,7 @@ body {
 	font-weight: 600;
 	padding-bottom: 18px;
 	letter-spacing: 0.5px;
-	text-shadow: none;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .centered-title {
@@ -130,7 +156,7 @@ body {
 	font-weight: 600;
 	padding-bottom: 18px;
 	letter-spacing: 0.5px;
-	text-shadow: none;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 	text-align: center;
 }
 
@@ -154,9 +180,9 @@ body {
 }
 
 .plus-btn {
-	background: #fff;
-	color: #18191a;
-	border: none;
+	background: rgba(124, 93, 255, 0.2);
+	color: var(--title);
+	border: 1px solid rgba(124, 93, 255, 0.4);
 	border-radius: 50%;
 	width: 34px;
 	height: 34px;
@@ -167,8 +193,12 @@ body {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	transition: all 0.2s ease;
 }
-.plus-btn:hover { background: #e6e6e6; }
+.plus-btn:hover {
+	background: rgba(124, 93, 255, 0.35);
+	border-color: rgba(124, 93, 255, 0.6);
+}
 
 .link-button {
 	display: flex;
@@ -179,15 +209,20 @@ body {
 	color: var(--text);
 	background: var(--button);
 	gap: 8px;
-	border: none;
-	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	border-radius: 12px;
 	cursor: pointer;
-	transition: background-color 0.2s ease, transform 0.05s ease;
+	transition: background-color 0.2s ease, transform 0.05s ease, border-color 0.2s ease;
 	min-height: 100px;
 	max-height: 100px;
 	min-width: 100px;
 	max-width: 100px;
 	box-sizing: border-box;
+}
+
+.link-button:hover {
+	background: var(--button-hover);
+	border-color: rgba(124, 93, 255, 0.4);
 }
 
 .link-button svg, .link-button svg.icon {
@@ -210,17 +245,23 @@ body {
 	width: 20px;
 	height: 20px;
 	border-radius: 50%;
-	background: rgba(255,255,255,0.08);
-	color: var(--text);
-	border: none;
+	background: rgba(255, 93, 93, 0.15);
+	color: #ff6b6b;
+	border: 1px solid rgba(255, 93, 93, 0.3);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 12px;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1;
 	cursor: pointer;
-	box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+	box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+	transition: opacity 0.2s ease;
 }
-.delete-btn:hover { background: rgba(255,80,80,0.12); color: #ff6b6b; }
+
+.delete-btn:hover {
+	opacity: 0.8;
+}
 
 .button-text {
 	font-size: 12px;
@@ -309,6 +350,13 @@ body {
 	width: 100%;
 	height: 40px;
 	justify-content: center;
+	border-radius: 8px;
+	padding: 0 8px;
+	transition: background-color 0.2s ease;
+}
+
+.checklist-item:hover {
+	background: rgba(255, 255, 255, 0.03);
 }
 
 .checklist span {
@@ -332,19 +380,23 @@ body {
 	min-height: 17px;
 	border-radius: 50%;
 	background-color: rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(255, 255, 255, 0.1);
 	position: relative;
 	top: 1px;
 	transition:
 		background-color 0.2s ease,
-		box-shadow 0.2s ease;
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
 }
 
 .checklist-item input[type="checkbox"]:hover {
 	background-color: rgba(255, 255, 255, 0.05);
+	border-color: rgba(124, 93, 255, 0.4);
 }
 
 .checklist-item input[type="checkbox"]:checked {
-	background-color: rgba(0, 0, 0, 0.5);
+	background-color: var(--accent);
+	border-color: var(--accent);
 }
 
 .checklist-item span {
@@ -355,11 +407,13 @@ body {
 }
 
 .checklist-item.completed input[type="checkbox"]:checked {
-	background-color: rgba(255, 255, 255, 0.3);
+	background-color: var(--accent);
+	border-color: var(--accent);
 }
 
 .checklist-item.completed input[type="checkbox"]:checked:hover {
-	background-color: rgba(255, 255, 255, 0.5);
+	background-color: var(--accent2);
+	border-color: var(--accent2);
 }
 
 .checklist-item.completed span {
@@ -396,13 +450,13 @@ button img:hover {
 	z-index: 0;
 	background-image: repeating-linear-gradient(
 		to bottom,
-		rgba(255,255,255,0.12) 0px,
-		rgba(255,255,255,0.12) 1px,
-		transparent 1px,
-		transparent calc(var(--notepad-line-height) - 1px)
+		transparent 0px,
+		transparent calc(var(--notepad-line-height) - 1px),
+		rgba(255,255,255,0.08) calc(var(--notepad-line-height) - 1px),
+		rgba(255,255,255,0.08) var(--notepad-line-height)
 	);
 	background-size: 100% var(--notepad-line-height);
-	background-position-y: 10px; /* nudge to remove extra top line */
+	background-position-y: 0px;
 	border-radius: 6px;
 	opacity: 1;
 }
@@ -413,7 +467,7 @@ button img:hover {
 	width: calc(100% - 24px);
 	height: calc(100% - 24px);
 	margin: 12px;
-	font-family: "Ubuntu Mono";
+	font-family: "Source Serif 4", "Ubuntu Mono", monospace;
 	font-size: 15px;
 	line-height: 26px;
 	background: transparent;
@@ -423,12 +477,13 @@ button img:hover {
 	overflow: auto;
 	overflow-y: scroll;
 	overscroll-behavior: none;
+	padding-top: 0;
 }
 
 textarea {
-	font-family: "Ubuntu Mono";
+	font-family: "Source Serif 4", "Ubuntu Mono", monospace;
 	color: var(--text);
-	background: #111;
+	background: #0a0a0a;
 	font-size: 16px;
 	width: 100%;
 	height: 100%;
@@ -440,10 +495,10 @@ textarea {
 }
 
 #new-todo {
-	font-family: "Ubuntu Mono";
-	background: rgba(0, 0, 0, 0.07);
+	font-family: "Source Serif 4", "Ubuntu Mono", monospace;
+	background: rgba(255, 255, 255, 0.03);
 	color: var(--text);
-	border: none;
+	border: 1px solid rgba(255, 255, 255, 0.08);
 	padding: 6px;
 	padding-left: 11px;
 	padding-right: 11px;
@@ -451,6 +506,12 @@ textarea {
 	height: 40px;
 	outline: none;
 	border-radius: 8px;
+	transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+#new-todo:focus {
+	border-color: rgba(124, 93, 255, 0.5);
+	background: rgba(255, 255, 255, 0.05);
 }
 
 /* Final overrides: ensure notepad lines are visible behind the textarea */
@@ -471,32 +532,46 @@ textarea {
 	display: flex;
 	text-align: center;
 	justify-content: center;
+	align-items: center;
 	position: absolute;
 	fill: var(--text);
 	color: var(--text);
 	top: 20px;
 	right: 20px;
-	background: transparent;
-	width: 24px;
-	height: 24px;
-	border: none;
+	background: rgba(255, 93, 93, 0.1);
+	width: 28px;
+	height: 28px;
+	border: 1px solid rgba(255, 93, 93, 0.3);
+	border-radius: 8px;
 	cursor: pointer;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1;
 	transition:
 		background-color 0.2s ease,
-		transform 0.05s ease;
+		transform 0.05s ease,
+		border-color 0.2s ease;
+}
+
+#clear-completed::before {
+	content: '×';
+}
+
+#clear-completed:hover {
+	opacity: 0.8;
 }
 
 #clear-completed:active {
-	transform: scale(0.8);
+	transform: scale(0.95);
 }
 
 /* Clipboard box styling */
 .clipboard-box {
 	margin-bottom: 12px;
-	border: 1px solid rgba(255,255,255,0.04);
-	border-radius: 6px;
+	border: 1px solid rgba(255,255,255,0.06);
+	border-radius: 8px;
 	padding: 8px;
-	background: rgba(255,255,255,0.01);
+	background: rgba(255,255,255,0.02);
 }
 
 .clipboard-box .clipboard-actions {
@@ -507,23 +582,29 @@ textarea {
 }
 
 .clipboard-box .clipboard-actions .icon-btn {
-	width: 22px;
-	height: 22px;
-	border-radius: 50%;
-	background: rgba(255,255,255,0.08);
+	width: 24px;
+	height: 24px;
+	border-radius: 6px;
+	background: rgba(124, 93, 255, 0.1);
 	color: var(--text);
-	border: none;
+	border: 1px solid rgba(124, 93, 255, 0.25);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 10px;
+	font-size: 12px;
 	cursor: pointer;
 	box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-	transition: background 0.2s ease;
+	transition: background 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
 }
 
 .clipboard-box .clipboard-actions .icon-btn:hover {
-	background: rgba(255,255,255,0.12);
+	background: rgba(124, 93, 255, 0.2);
+	border-color: rgba(124, 93, 255, 0.4);
+	transform: translateY(-1px);
+}
+
+.clipboard-box .clipboard-actions .icon-btn:active {
+	transform: translateY(0);
 }
 
 .clipboard-box .clipboard-actions .btn.small {
@@ -612,7 +693,7 @@ header .calendar-navigation {
 	height: 30px;
 }
 
-header .calendar-navigation span {
+.calendar-navigation span {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -626,12 +707,15 @@ header .calendar-navigation span {
 	color: var(--text);
 	font-size: 1rem;
 	font-weight: bold;
+	border: 1px solid rgba(255, 255, 255, 0.08);
 	transition:
 		background-color 0.2s ease,
+		border-color 0.2s ease;
 }
 
 header .calendar-navigation span:hover {
-	background: rgba(0, 0, 0, 0.1);
+	background: rgba(124, 93, 255, 0.2);
+	border-color: rgba(124, 93, 255, 0.4);
 }
 
 header .calendar-current-date {
@@ -669,17 +753,20 @@ header .calendar-current-date {
 	justify-content: center;
 	position: relative;
 	z-index: 1;
-	cursor: default;
+	cursor: pointer;
 	height: 3.7vh;
 	min-height: 30px;
+	transition: color 0.2s ease;
 }
 
 .calendar-dates li.inactive {
 	color: rgba(255, 255, 255, 0.2);
+	cursor: default;
 }
 
 .calendar-dates li.active {
 	color: var(--text);
+	font-weight: 600;
 }
 
 .calendar-dates li::before {
@@ -692,14 +779,38 @@ header .calendar-current-date {
 	height: 30px;
 	border-radius: 10px;
 	transform: translate(-50%, -50%);
+	transition: all 0.2s ease;
 }
 
 .calendar-dates li.active::before {
-	background: rgba(0, 0, 0, 0.2);
+	background: rgba(124, 93, 255, 0.25);
+	border: 1px solid rgba(124, 93, 255, 0.4);
+}
+
+.calendar-dates li:not(.active):not(.inactive):hover {
+	color: var(--text);
 }
 
 .calendar-dates li:not(.active):hover::before {
-	background: rgba(0, 0, 0, 0.1);
+	background: rgba(124, 93, 255, 0.12);
+	border: 1px solid rgba(124, 93, 255, 0.2);
+}
+
+/* Reminder indicator dot */
+.calendar-dates li .reminder-dot {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	width: 5px;
+	height: 5px;
+	background: #7c5dff;
+	border-radius: 50%;
+	box-shadow: 0 0 4px rgba(124, 93, 255, 0.6);
+	z-index: 10;
+}
+
+.calendar-dates li {
+	position: relative;
 }
 
 #clipboard-container {
@@ -731,14 +842,13 @@ header .calendar-current-date {
 #clipboard-container div textarea {
 	width: 100%;
 	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
 	text-align: left;
 	overflow-y: scroll;
 	word-break: break-all;
-	padding: 10px;
+	padding: 10px 10px 12px 10px;
 	border-radius: 10px;
+	line-height: 1.4;
+	padding-top: 6px;
 }
 
 .plus-btn {
@@ -791,12 +901,12 @@ header .calendar-current-date {
 	display: none !important;
 }
 .modal-content {
-	background: #0f0f10;
-	border: 1px solid rgba(255,255,255,0.06);
+	background: #0a0a0a;
+	border: 1px solid rgba(255,255,255,0.1);
 	padding: 20px;
 	width: 360px;
 	max-width: 90vw;
-	border-radius: 10px;
+	border-radius: 12px;
 	box-shadow: 0 20px 60px rgba(0,0,0,0.7);
 }
 .modal-content h4 {
@@ -808,14 +918,84 @@ header .calendar-current-date {
 	width: 100%;
 	margin: 8px 0;
 	padding: 12px;
-	border-radius: 6px;
-	background: #18191a;
-	border: 1px solid rgba(255,255,255,0.06);
+	border-radius: 8px;
+	background: rgba(255,255,255,0.03);
+	border: 1px solid rgba(255,255,255,0.08);
 	color: var(--text);
 	font-size: 14px;
+	font-family: "Source Serif 4", "Ubuntu", sans-serif;
+	transition: border-color 0.2s ease, background-color 0.2s ease;
 }
+
+.modal-content input[type="time"] {
+	cursor: pointer;
+	color-scheme: dark;
+	font-size: 16px;
+	padding: 14px;
+	background: rgba(124, 93, 255, 0.05);
+	border: 1px solid rgba(124, 93, 255, 0.2);
+}
+
+.modal-content input[type="time"]::-webkit-calendar-picker-indicator {
+	filter: invert(1);
+	cursor: pointer;
+	opacity: 0.8;
+}
+
+.modal-content input[type="time"]::-webkit-calendar-picker-indicator:hover {
+	opacity: 1;
+}
+
+.time-picker-wrapper {
+	margin: 12px 0 16px 0;
+	display: flex;
+	justify-content: center;
+}
+
+.time-inputs {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	background: rgba(124, 93, 255, 0.05);
+	padding: 8px 16px;
+	border-radius: 10px;
+	border: 1px solid rgba(124, 93, 255, 0.2);
+}
+
+.time-select {
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--text);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 8px;
+	padding: 10px 8px;
+	font-size: 16px;
+	font-family: "Source Serif 4", "Ubuntu Mono", monospace;
+	cursor: pointer;
+	width: 65px;
+	text-align: center;
+	transition: all 0.2s ease;
+}
+
+.time-select:hover {
+	background: rgba(255, 255, 255, 0.08);
+	border-color: rgba(124, 93, 255, 0.4);
+}
+
+.time-select:focus {
+	outline: none;
+	border-color: rgba(124, 93, 255, 0.6);
+	background: rgba(255, 255, 255, 0.08);
+}
+
+.time-separator {
+	color: var(--text);
+	font-size: 20px;
+	font-weight: 600;
+}
+
 .modal-content input:focus {
-	border-color: rgba(255,255,255,0.2);
+	border-color: rgba(124, 93, 255, 0.5);
+	background: rgba(255,255,255,0.05);
 	outline: none;
 }
 .modal-actions {
@@ -826,23 +1006,26 @@ header .calendar-current-date {
 }
 .btn.small {
 	padding: 10px 16px;
-	border-radius: 6px;
-	border: 1px solid rgba(255,255,255,0.06);
-	background: transparent;
+	border-radius: 8px;
+	border: 1px solid rgba(124, 93, 255, 0.3);
+	background: rgba(124, 93, 255, 0.1);
 	color: var(--text);
 	cursor: pointer;
 	font-size: 13px;
+	transition: all 0.2s ease;
 }
 .btn.small:hover {
-	background: rgba(255,255,255,0.05);
+	background: rgba(124, 93, 255, 0.2);
+	border-color: rgba(124, 93, 255, 0.5);
 }
 .btn.small.primary {
-	background: white;
-	color: var(--background);
-	border: none;
+	background: var(--accent);
+	color: #fff;
+	border: 1px solid var(--accent);
 }
 .btn.small.primary:hover {
-	background: #e6e6e6;
+	background: var(--accent2);
+	border-color: var(--accent2);
 }
 
 /* Date format modal styling */
