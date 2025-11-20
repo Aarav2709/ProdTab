@@ -955,42 +955,52 @@ header .calendar-current-date {
 .time-inputs {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	background: rgba(124, 93, 255, 0.05);
-	padding: 8px 16px;
-	border-radius: 10px;
-	border: 1px solid rgba(124, 93, 255, 0.2);
+	gap: 12px;
+	background: rgba(124, 93, 255, 0.08);
+	padding: 12px 24px;
+	border-radius: 12px;
+	border: 1px solid rgba(124, 93, 255, 0.25);
 }
 
-.time-select {
+.time-input {
 	background: rgba(255, 255, 255, 0.05);
 	color: var(--text);
-	border: 1px solid rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.15);
 	border-radius: 8px;
-	padding: 10px 8px;
-	font-size: 16px;
-	font-family: "Source Serif 4", "Ubuntu Mono", monospace;
-	cursor: pointer;
-	width: 65px;
+	padding: 12px;
+	font-size: 18px;
+	font-family: "Ubuntu Mono", monospace;
+	font-weight: 600;
+	width: 60px;
 	text-align: center;
 	transition: all 0.2s ease;
+	appearance: textfield;
+	-moz-appearance: textfield;
 }
 
-.time-select:hover {
+.time-input::-webkit-outer-spin-button,
+.time-input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.time-input:hover {
 	background: rgba(255, 255, 255, 0.08);
 	border-color: rgba(124, 93, 255, 0.4);
 }
 
-.time-select:focus {
+.time-input:focus {
 	outline: none;
 	border-color: rgba(124, 93, 255, 0.6);
-	background: rgba(255, 255, 255, 0.08);
+	background: rgba(124, 93, 255, 0.12);
+	box-shadow: 0 0 0 3px rgba(124, 93, 255, 0.1);
 }
 
 .time-separator {
 	color: var(--text);
-	font-size: 20px;
-	font-weight: 600;
+	font-size: 24px;
+	font-weight: 700;
+	margin: 0 4px;
 }
 
 .modal-content input:focus {

@@ -169,24 +169,6 @@ const initializeDateTimeAndCalendar = () => {
         dayContainer.replaceChildren(fragment);
     };
 
-    navIcons.forEach((icon) => {
-        icon.addEventListener("click", () => {
-            currentMonth += icon.id === "calendar-prev" ? -1 : 1;
-
-            if (currentMonth < 0 || currentMonth > 11) {
-                const newDate = new Date(currentYear, currentMonth);
-                currentYear = newDate.getFullYear();
-                currentMonth = newDate.getMonth();
-            }
-
-            generateCalendar();
-        });
-    });
-
-    updateDateTime();
-    generateCalendar();
-    setInterval(updateDateTime, 1000);
-
     // Add calendar click handler for date format selection and copying
     dayContainer.addEventListener('click', (e) => {
         if (e.target.tagName === 'LI' && !e.target.classList.contains('inactive')) {
@@ -245,13 +227,25 @@ const initializeDateTimeAndCalendar = () => {
         });
     };
 
-    // Call after generating calendar
-    const originalGenerateCalendar = generateCalendar;
-    generateCalendar = () => {
-        originalGenerateCalendar();
-        setTimeout(updateCalendarReminders, 0);
-    };
+    navIcons.forEach((icon) => {
+        icon.addEventListener("click", () => {
+            currentMonth += icon.id === "calendar-prev" ? -1 : 1;
+
+            if (currentMonth < 0 || currentMonth > 11) {
+                const newDate = new Date(currentYear, currentMonth);
+                currentYear = newDate.getFullYear();
+                currentMonth = newDate.getMonth();
+            }
+
+            generateCalendar();
+            updateCalendarReminders();
+        });
+    });
+
+    updateDateTime();
     generateCalendar();
+    updateCalendarReminders();
+    setInterval(updateDateTime, 1000);
 };
 
 /**********************/
@@ -263,6 +257,13 @@ const initializeTodoList = () => {
     const todolist = document.getElementById("todolist");
     const newTodoInput = document.getElementById("new-todo");
     const clearCompletedButton = document.getElementById("clear-completed");
+
+    console.log('Todo list initialized:', { todolist, newTodoInput, clearCompletedButton });
+
+    if (!todolist || !newTodoInput || !clearCompletedButton) {
+        console.error('Missing todo list elements!');
+        return;
+    }
 
     const saveChecklist = () => {
         const items = [...todolist.children].map((item) => ({
@@ -404,6 +405,7 @@ const initializeTodoList = () => {
         li.append(checkbox, span, moveContainer);
         todolist.appendChild(li);
         updateMoveButtons();
+        updateClearButtonVisibility();
     };
 
     const loadChecklist = () => {
@@ -416,9 +418,11 @@ const initializeTodoList = () => {
     };
 
     newTodoInput.addEventListener("keydown", (e) => {
+        console.log('Keydown event:', e.key);
         if (e.key === "Enter") {
             e.preventDefault();
             const text = newTodoInput.value.trim();
+            console.log('Adding todo:', text);
             if (text) {
                 addChecklistItem(text);
                 newTodoInput.value = "";
@@ -1139,7 +1143,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('reminder-save')?.addEventListener('click', () => {
         const text = reminderText.value.trim();
-        const time = `${reminderHour.value}:${reminderMinute.value}`;
+        const hour = String(reminderHour.value).padStart(2, '0');
+        const minute = String(reminderMinute.value).padStart(2, '0');
+        const time = `${hour}:${minute}`;
 
         if (!text) {
             alert('Please enter reminder text');
