@@ -5,247 +5,242 @@ const STORAGE_KEY = "dynamicbackground";
 const UPDATE_INTERVAL = 60000;
 
 function getDynamicBackgroundState() {
-    const state = localStorage.getItem(STORAGE_KEY);
-    if (state === null) {
-        localStorage.setItem(STORAGE_KEY, "true");
-        return true;
-    }
-    return state === "true";
+  const state = localStorage.getItem(STORAGE_KEY);
+  if (state === null) {
+    localStorage.setItem(STORAGE_KEY, "true");
+    return true;
+  }
+  return state === "true";
 }
 
 function hexToRgb(hex) {
-    return [
-        parseInt(hex.slice(1, 3), 16),
-        parseInt(hex.slice(3, 5), 16),
-        parseInt(hex.slice(5, 7), 16),
-    ];
+  return [
+    parseInt(hex.slice(1, 3), 16),
+    parseInt(hex.slice(3, 5), 16),
+    parseInt(hex.slice(5, 7), 16),
+  ];
 }
 
 function rgbToHex(r, g, b) {
-    return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
 }
 
 function interpolateColor(color1, color2, factor) {
-    const rgb1 = hexToRgb(color1);
-    const rgb2 = hexToRgb(color2);
-    const interpolated = rgb1.map((c, i) =>
-        Math.round(c + (rgb2[i] - c) * factor),
-    );
-    return rgbToHex(...interpolated);
+  const rgb1 = hexToRgb(color1);
+  const rgb2 = hexToRgb(color2);
+  const interpolated = rgb1.map((c, i) =>
+    Math.round(c + (rgb2[i] - c) * factor),
+  );
+  return rgbToHex(...interpolated);
 }
 
 function getBackgroundColors() {
-    const colors = [
-        { hour: 0, color: "#1c304b" }, // midnight
-        { hour: 3, color: "#41405d" }, // earlyMorning
-        { hour: 6, color: "#f3ae5d" }, // dawn
-        { hour: 9, color: "#74c3e1" }, // morning
-        { hour: 12, color: "#57b0d9" }, // noon
-        { hour: 15, color: "#6d9cc3" }, // afternoon
-        { hour: 18, color: "#e48959" }, // evening
-        { hour: 21, color: "#314867" }, // night
-        { hour: 24, color: "#1c304b" }, // back to midnight
-    ];
+  const colors = [
+    { hour: 0, color: "#1c304b" }, // midnight
+    { hour: 3, color: "#41405d" }, // earlyMorning
+    { hour: 6, color: "#f3ae5d" }, // dawn
+    { hour: 9, color: "#74c3e1" }, // morning
+    { hour: 12, color: "#57b0d9" }, // noon
+    { hour: 15, color: "#6d9cc3" }, // afternoon
+    { hour: 18, color: "#e48959" }, // evening
+    { hour: 21, color: "#314867" }, // night
+    { hour: 24, color: "#1c304b" }, // back to midnight
+  ];
 
-    const now = new Date();
-    const currentHour = now.getHours() + now.getMinutes() / 60;
+  const now = new Date();
+  const currentHour = now.getHours() + now.getMinutes() / 60;
 
-    let i = 0;
-    while (i < colors.length - 1 && currentHour >= colors[i + 1].hour) {
-        i++;
-    }
+  let i = 0;
+  while (i < colors.length - 1 && currentHour >= colors[i + 1].hour) {
+    i++;
+  }
 
-    const start = colors[i];
-    const end = colors[i + 1];
-    const factor = (currentHour - start.hour) / (end.hour - start.hour || 1);
+  const start = colors[i];
+  const end = colors[i + 1];
+  const factor = (currentHour - start.hour) / (end.hour - start.hour || 1);
 
-    return { startColor: start.color, endColor: end.color, factor };
+  return { startColor: start.color, endColor: end.color, factor };
 }
 
 function updateBackgroundColor() {
-    // Always use a fixed grey background
-    document.body.style.backgroundColor = '#18191a';
+  // Always use a fixed grey background
+  document.body.style.backgroundColor = "#18191a";
 }
 
 function initializeDynamicBackground() {
-    updateBackgroundColor();
+  updateBackgroundColor();
 }
 
 /**********************/
 /*      CALENDAR      */
 /**********************/
 const initializeDateTimeAndCalendar = () => {
-    const currentDateElement = document.getElementById("current-date");
-    const currentTimeElement = document.getElementById("current-time");
-    const dayContainer = document.querySelector(".calendar-dates");
-    const currDateLabel = document.querySelector(".calendar-current-date");
-    const navIcons = document.querySelectorAll(".calendar-navigation span");
+  const currentDateElement = document.getElementById("current-date");
+  const currentTimeElement = document.getElementById("current-time");
+  const dayContainer = document.querySelector(".calendar-dates");
+  const currDateLabel = document.querySelector(".calendar-current-date");
+  const navIcons = document.querySelectorAll(".calendar-navigation span");
 
-    const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-    ];
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
-    let today = new Date();
-    let currentYear = today.getFullYear();
-    let currentMonth = today.getMonth();
+  let today = new Date();
+  let currentYear = today.getFullYear();
+  let currentMonth = today.getMonth();
 
-    const updateDateTime = () => {
-        const now = new Date();
-        const dayOfWeek = now.toLocaleDateString("en-EN", { weekday: "long" });
-        const date = now.getDate();
-        const month = now.toLocaleDateString("en-EN", { month: "long" });
-        const year = now.getFullYear();
+  const updateDateTime = () => {
+    const now = new Date();
+    const dayOfWeek = now.toLocaleDateString("en-EN", { weekday: "long" });
+    const date = now.getDate();
+    const month = now.toLocaleDateString("en-EN", { month: "long" });
+    const year = now.getFullYear();
 
-        let hours = now.getHours();
-        const minutes = now.getMinutes().toString().padStart(2, "0");
-        const ampm = hours >= 12 ? "PM" : "AM";
-        hours = hours % 12 || 12;
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
 
-        currentDateElement.textContent = "";
-        currentDateElement.appendChild(
-            createParagraph(`${date} ${month} ${year}`),
-        );
-        currentDateElement.appendChild(createParagraph(dayOfWeek));
+    currentDateElement.textContent = `${dayOfWeek}, ${date} ${month} ${year}`;
 
-        currentTimeElement.textContent = `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+    currentTimeElement.textContent = `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
+  };
+
+  const generateCalendar = () => {
+    const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
+    const firstDayOffset = (firstDayIndex + 6) % 7;
+    const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const prevLastDate = new Date(currentYear, currentMonth, 0).getDate();
+    const endDayIndex = new Date(currentYear, currentMonth, lastDate).getDay();
+    const endOffset = (endDayIndex + 6) % 7;
+
+    const fragment = document.createDocumentFragment();
+    const appendDay = (dayNumber, className = null) => {
+      const listItem = document.createElement("li");
+      if (className) {
+        listItem.className = className;
+      }
+      listItem.textContent = String(dayNumber);
+      fragment.appendChild(listItem);
     };
 
-    const createParagraph = (text) => {
-        const p = document.createElement("p");
-        p.textContent = text;
-        return p;
-    };
+    for (let i = firstDayOffset; i > 0; i--) {
+      appendDay(prevLastDate - i + 1, "inactive");
+    }
 
-    const generateCalendar = () => {
-        const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
-        const firstDayOffset = (firstDayIndex + 6) % 7;
-        const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
-        const prevLastDate = new Date(currentYear, currentMonth, 0).getDate();
-        const endDayIndex = new Date(
-            currentYear,
-            currentMonth,
-            lastDate,
-        ).getDay();
-        const endOffset = (endDayIndex + 6) % 7;
+    for (let i = 1; i <= lastDate; i++) {
+      const isToday =
+        i === today.getDate() &&
+        currentMonth === today.getMonth() &&
+        currentYear === today.getFullYear();
+      appendDay(i, isToday ? "active" : null);
+    }
 
-        const fragment = document.createDocumentFragment();
-        const appendDay = (dayNumber, className = null) => {
-            const listItem = document.createElement("li");
-            if (className) {
-                listItem.className = className;
-            }
-            listItem.textContent = String(dayNumber);
-            fragment.appendChild(listItem);
-        };
+    for (let i = endOffset; i < 6; i++) {
+      appendDay(i - endOffset + 1, "inactive");
+    }
 
-        for (let i = firstDayOffset; i > 0; i--) {
-            appendDay(prevLastDate - i + 1, "inactive");
+    currDateLabel.innerText = `${months[currentMonth]} ${currentYear}`;
+    dayContainer.replaceChildren(fragment);
+  };
+
+  // Add calendar click handler for date format selection and copying
+  dayContainer.addEventListener("click", (e) => {
+    if (e.target.tagName === "LI" && !e.target.classList.contains("inactive")) {
+      const day = parseInt(e.target.textContent);
+      const date = new Date(currentYear, currentMonth, day);
+
+      // Store the selected date globally
+      window.selectedCalendarDate = date;
+
+      // Check if Shift key is pressed for date copying
+      if (e.shiftKey) {
+        // Show date format modal for copying
+        const dateModal = document.getElementById("date-modal");
+        const selectedDateDisplay = document.getElementById("selected-date");
+        selectedDateDisplay.textContent = `Selected: ${date.toLocaleDateString(
+          "en-US",
+          {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          },
+        )}`;
+        dateModal.classList.remove("hidden");
+      } else {
+        // Show reminder modal by default
+        const modal = document.getElementById("reminder-modal");
+        const reminderDateDisplay = document.getElementById("reminder-date");
+        reminderDateDisplay.textContent = `Reminder for: ${date.toLocaleDateString(
+          "en-US",
+          {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          },
+        )}`;
+        modal.classList.remove("hidden");
+      }
+    }
+  });
+
+  // Add visual indicator for dates with reminders
+  const updateCalendarReminders = () => {
+    const reminders = JSON.parse(
+      localStorage.getItem("calendar-reminders") || "[]",
+    );
+    const dates = dayContainer.querySelectorAll("li:not(.inactive)");
+
+    dates.forEach((dateEl) => {
+      const day = parseInt(dateEl.textContent);
+      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const hasReminder = reminders.some((r) => r.date === dateStr);
+
+      if (hasReminder) {
+        dateEl.style.position = "relative";
+        if (!dateEl.querySelector(".reminder-dot")) {
+          const dot = document.createElement("span");
+          dot.className = "reminder-dot";
+          dot.style.cssText =
+            "position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; background: #7c5dff; border-radius: 50%;";
+          dateEl.appendChild(dot);
         }
-
-        for (let i = 1; i <= lastDate; i++) {
-            const isToday =
-                i === today.getDate() &&
-                currentMonth === today.getMonth() &&
-                currentYear === today.getFullYear();
-            appendDay(i, isToday ? "active" : null);
-        }
-
-        for (let i = endOffset; i < 6; i++) {
-            appendDay(i - endOffset + 1, "inactive");
-        }
-
-        currDateLabel.innerText = `${months[currentMonth]} ${currentYear}`;
-        dayContainer.replaceChildren(fragment);
-    };
-
-    // Add calendar click handler for date format selection and copying
-    dayContainer.addEventListener('click', (e) => {
-        if (e.target.tagName === 'LI' && !e.target.classList.contains('inactive')) {
-            const day = parseInt(e.target.textContent);
-            const date = new Date(currentYear, currentMonth, day);
-
-            // Store the selected date globally
-            window.selectedCalendarDate = date;
-
-            // Check if Shift key is pressed for date copying
-            if (e.shiftKey) {
-                // Show date format modal for copying
-                const dateModal = document.getElementById('date-modal');
-                const selectedDateDisplay = document.getElementById('selected-date');
-                selectedDateDisplay.textContent = `Selected: ${date.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                })}`;
-                dateModal.classList.remove('hidden');
-            } else {
-                // Show reminder modal by default
-                const modal = document.getElementById('reminder-modal');
-                const reminderDateDisplay = document.getElementById('reminder-date');
-                reminderDateDisplay.textContent = `Reminder for: ${date.toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                })}`;
-                modal.classList.remove('hidden');
-            }
-        }
+      }
     });
+  };
 
-    // Add visual indicator for dates with reminders
-    const updateCalendarReminders = () => {
-        const reminders = JSON.parse(localStorage.getItem('calendar-reminders') || '[]');
-        const dates = dayContainer.querySelectorAll('li:not(.inactive)');
+  navIcons.forEach((icon) => {
+    icon.addEventListener("click", () => {
+      currentMonth += icon.id === "calendar-prev" ? -1 : 1;
 
-        dates.forEach(dateEl => {
-            const day = parseInt(dateEl.textContent);
-            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const hasReminder = reminders.some(r => r.date === dateStr);
+      if (currentMonth < 0 || currentMonth > 11) {
+        const newDate = new Date(currentYear, currentMonth);
+        currentYear = newDate.getFullYear();
+        currentMonth = newDate.getMonth();
+      }
 
-            if (hasReminder) {
-                dateEl.style.position = 'relative';
-                if (!dateEl.querySelector('.reminder-dot')) {
-                    const dot = document.createElement('span');
-                    dot.className = 'reminder-dot';
-                    dot.style.cssText = 'position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; background: #7c5dff; border-radius: 50%;';
-                    dateEl.appendChild(dot);
-                }
-            }
-        });
-    };
-
-    navIcons.forEach((icon) => {
-        icon.addEventListener("click", () => {
-            currentMonth += icon.id === "calendar-prev" ? -1 : 1;
-
-            if (currentMonth < 0 || currentMonth > 11) {
-                const newDate = new Date(currentYear, currentMonth);
-                currentYear = newDate.getFullYear();
-                currentMonth = newDate.getMonth();
-            }
-
-            generateCalendar();
-            updateCalendarReminders();
-        });
+      generateCalendar();
+      updateCalendarReminders();
     });
+  });
 
-    updateDateTime();
-    generateCalendar();
-    updateCalendarReminders();
-    setInterval(updateDateTime, 1000);
+  updateDateTime();
+  generateCalendar();
+  updateCalendarReminders();
+  setInterval(updateDateTime, 1000);
 };
 
 /**********************/
@@ -254,218 +249,197 @@ const initializeDateTimeAndCalendar = () => {
 const TODO_STORAGE_KEY = "todolist-content";
 
 const initializeTodoList = () => {
-    const todolist = document.getElementById("todolist");
-    const newTodoInput = document.getElementById("new-todo");
-    const clearCompletedButton = document.getElementById("clear-completed");
+  const todolist = document.getElementById("todolist");
+  const newTodoInput = document.getElementById("new-todo");
+  const clearCompletedButton = document.getElementById("clear-completed");
 
-    console.log('Todo list initialized:', { todolist, newTodoInput, clearCompletedButton });
+  if (!todolist || !newTodoInput || !clearCompletedButton) {
+    console.error("Missing todo list elements!");
+    return;
+  }
 
-    if (!todolist || !newTodoInput || !clearCompletedButton) {
-        console.error('Missing todo list elements!');
-        return;
-    }
+  const saveChecklist = () => {
+    const items = [...todolist.children].map((item) => ({
+      text: item.querySelector(".todo-text").textContent,
+      checked: item.querySelector("input[type='checkbox']").checked,
+    }));
+    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(items));
+  };
 
-    const saveChecklist = () => {
-        const items = [...todolist.children].map((item) => ({
-            text: item.querySelector(".todo-text").textContent,
-            checked: item.querySelector("input[type='checkbox']").checked,
-        }));
-        localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(items));
-    };
+  const updateClearButtonVisibility = () => {
+    const hasChecked = [...todolist.children].some(
+      (item) =>
+        item.classList.contains("completed") &&
+        item.querySelector("input[type='checkbox']").checked,
+    );
+    clearCompletedButton.style.display = hasChecked ? "flex" : "none";
+  };
 
-    const updateClearButtonVisibility = () => {
-        const hasChecked = [...todolist.children].some(
-            (item) =>
-                item.classList.contains("completed") &&
-                item.querySelector("input[type='checkbox']").checked,
-        );
-        clearCompletedButton.style.display = hasChecked ? "flex" : "none";
-    };
+  const updateMoveButtons = () => {
+    const items = [...todolist.querySelectorAll(".checklist-item")];
+    items.forEach((item, index) => {
+      const [upBtn, downBtn] = item.querySelectorAll(".move-buttons button");
+      upBtn.disabled = index === 0;
+      downBtn.disabled = index === items.length - 1;
+      [upBtn, downBtn].forEach((btn) => {
+        btn.classList.add("move-btn");
+        btn.style.opacity = btn.disabled ? "0.2" : "0.7";
+      });
+    });
+  };
 
-    const updateMoveButtons = () => {
-        const items = [...todolist.querySelectorAll(".checklist-item")];
-        items.forEach((item, index) => {
-            const [upBtn, downBtn] = item.querySelectorAll(
-                ".move-buttons button",
-            );
-            upBtn.disabled = index === 0;
-            downBtn.disabled = index === items.length - 1;
-            [upBtn, downBtn].forEach((btn) => {
-                btn.classList.add("move-btn");
-                btn.style.opacity = btn.disabled ? "0.2" : "0.7";
-            });
+  const createEditableSpan = (text, li) => {
+    const span = document.createElement("span");
+    span.textContent = text;
+    span.className = "todo-text";
+
+    span.addEventListener("click", (event) => {
+      if (span.querySelector("input")) return;
+
+      if (event.altKey) {
+        const originalText = span.textContent;
+        const input = document.createElement("input");
+        Object.assign(input.style, {
+          backgroundColor: "transparent",
+          color: "white",
+          fontFamily: "var(--font-mono)",
+          fontSize: "16px",
+          width: "100%",
+          border: "none",
+          outline: "none",
         });
-    };
+        input.type = "text";
+        input.value = originalText;
 
-    const createEditableSpan = (text, li) => {
-        const span = document.createElement("span");
-        span.textContent = text;
-        span.className = "todo-text";
+        span.textContent = "";
+        span.appendChild(input);
+        input.focus();
 
-        span.addEventListener("click", (event) => {
-            if (span.querySelector("input")) return;
+        const finalizeEdit = (cancel = false) => {
+          const newText = input.value.trim();
+          if (!cancel && newText) {
+            span.textContent = newText;
+          } else if (!cancel) {
+            li.remove();
+          } else {
+            span.textContent = originalText;
+          }
+          saveChecklist();
+          updateClearButtonVisibility();
+        };
 
-            if (event.altKey) {
-                const originalText = span.textContent;
-                const input = document.createElement("input");
-                Object.assign(input.style, {
-                    backgroundColor: "transparent",
-                    color: "white",
-                    fontFamily: "Ubuntu Mono",
-                    fontSize: "16px",
-                    width: "100%",
-                    border: "none",
-                    outline: "none",
-                });
-                input.type = "text";
-                input.value = originalText;
-
-                span.textContent = "";
-                span.appendChild(input);
-                input.focus();
-
-                const finalizeEdit = (cancel = false) => {
-                    const newText = input.value.trim();
-                    if (!cancel && newText) {
-                        span.textContent = newText;
-                    } else if (!cancel) {
-                        li.remove();
-                    } else {
-                        span.textContent = originalText;
-                    }
-                    saveChecklist();
-                    updateClearButtonVisibility();
-                };
-
-                input.addEventListener("keydown", (e) => {
-                    if (e.key === "Enter") finalizeEdit();
-                    else if (e.key === "Escape") finalizeEdit(true);
-                    else if (e.key === "Delete") {
-                        li.remove();
-                        saveChecklist();
-                        updateClearButtonVisibility();
-                    }
-                });
-                input.addEventListener("blur", () => finalizeEdit());
-            } else if (event.ctrlKey) {
-                li.remove();
-                saveChecklist();
-                updateClearButtonVisibility();
-                updateMoveButtons();
-            }
-        });
-
-        return span;
-    };
-
-    const addChecklistItem = (text, checked = false) => {
-        const li = document.createElement("li");
-        li.className = "checklist-item";
-        if (checked) li.classList.add("completed");
-
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = checked;
-        checkbox.addEventListener("change", () => {
-            li.classList.toggle("completed", checkbox.checked);
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") finalizeEdit();
+          else if (e.key === "Escape") finalizeEdit(true);
+          else if (e.key === "Delete") {
+            li.remove();
             saveChecklist();
             updateClearButtonVisibility();
+          }
         });
-
-        const span = createEditableSpan(text, li);
-
-        const moveContainer = document.createElement("div");
-        moveContainer.className = "move-buttons";
-
-        const upBtn = document.createElement("button");
-        upBtn.textContent = "▲";
-        upBtn.className = "move-up";
-        upBtn.addEventListener("click", () => {
-            const prev = li.previousElementSibling;
-            if (prev) {
-                todolist.insertBefore(li, prev);
-                saveChecklist();
-                updateMoveButtons();
-            }
-        });
-
-        const downBtn = document.createElement("button");
-        downBtn.textContent = "▼";
-        downBtn.className = "move-down";
-        downBtn.addEventListener("click", () => {
-            const next = li.nextElementSibling;
-            if (next) {
-                todolist.insertBefore(next, li);
-                saveChecklist();
-                updateMoveButtons();
-            }
-        });
-
-        moveContainer.append(upBtn, downBtn);
-        li.append(checkbox, span, moveContainer);
-        todolist.appendChild(li);
-        updateMoveButtons();
-        updateClearButtonVisibility();
-    };
-
-    const loadChecklist = () => {
-        const savedChecklist =
-            JSON.parse(localStorage.getItem(TODO_STORAGE_KEY)) || [];
-        todolist.innerHTML = "";
-        savedChecklist.forEach(({ text, checked }) =>
-            addChecklistItem(text, checked),
-        );
-    };
-
-    newTodoInput.addEventListener("keydown", (e) => {
-        console.log('Keydown event:', e.key);
-        if (e.key === "Enter") {
-            e.preventDefault();
-            const text = newTodoInput.value.trim();
-            console.log('Adding todo:', text);
-            if (text) {
-                addChecklistItem(text);
-                newTodoInput.value = "";
-                saveChecklist();
-            }
-        }
-    });
-
-    newTodoInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            const text = newTodoInput.value.trim();
-            if (text) {
-                addChecklistItem(text);
-                newTodoInput.value = "";
-                saveChecklist();
-            }
-        }
-    });
-
-    clearCompletedButton.addEventListener("click", () => {
-        [...todolist.children]
-            .filter(
-                (item) => item.querySelector("input[type='checkbox']").checked,
-            )
-            .forEach((item) => item.remove());
+        input.addEventListener("blur", () => finalizeEdit());
+      } else if (event.ctrlKey) {
+        li.remove();
         saveChecklist();
         updateClearButtonVisibility();
+        updateMoveButtons();
+      }
     });
 
-    window.addEventListener("storage", (event) => {
-        if (event.key === TODO_STORAGE_KEY) {
-            const checklist = JSON.parse(event.newValue) || [];
-            todolist.innerHTML = "";
-            checklist.forEach(({ text, checked }) =>
-                addChecklistItem(text, checked),
-            );
-            updateClearButtonVisibility();
-        }
+    return span;
+  };
+
+  const addChecklistItem = (text, checked = false) => {
+    const li = document.createElement("li");
+    li.className = "checklist-item";
+    if (checked) li.classList.add("completed");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = checked;
+    checkbox.addEventListener("change", () => {
+      li.classList.toggle("completed", checkbox.checked);
+      saveChecklist();
+      updateClearButtonVisibility();
     });
 
-    loadChecklist();
+    const span = createEditableSpan(text, li);
+
+    const moveContainer = document.createElement("div");
+    moveContainer.className = "move-buttons";
+
+    const upBtn = document.createElement("button");
+    upBtn.textContent = "▲";
+    upBtn.className = "move-up";
+    upBtn.addEventListener("click", () => {
+      const prev = li.previousElementSibling;
+      if (prev) {
+        todolist.insertBefore(li, prev);
+        saveChecklist();
+        updateMoveButtons();
+      }
+    });
+
+    const downBtn = document.createElement("button");
+    downBtn.textContent = "▼";
+    downBtn.className = "move-down";
+    downBtn.addEventListener("click", () => {
+      const next = li.nextElementSibling;
+      if (next) {
+        todolist.insertBefore(next, li);
+        saveChecklist();
+        updateMoveButtons();
+      }
+    });
+
+    moveContainer.append(upBtn, downBtn);
+    li.append(checkbox, span, moveContainer);
+    todolist.appendChild(li);
+    updateMoveButtons();
     updateClearButtonVisibility();
+  };
+
+  const loadChecklist = () => {
+    const savedChecklist =
+      JSON.parse(localStorage.getItem(TODO_STORAGE_KEY)) || [];
+    todolist.innerHTML = "";
+    savedChecklist.forEach(({ text, checked }) =>
+      addChecklistItem(text, checked),
+    );
+  };
+
+  newTodoInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const text = newTodoInput.value.trim();
+
+      if (text) {
+        addChecklistItem(text);
+        newTodoInput.value = "";
+        saveChecklist();
+      }
+    }
+  });
+
+  clearCompletedButton.addEventListener("click", () => {
+    [...todolist.children]
+      .filter((item) => item.querySelector("input[type='checkbox']").checked)
+      .forEach((item) => item.remove());
+    saveChecklist();
+    updateClearButtonVisibility();
+  });
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === TODO_STORAGE_KEY) {
+      const checklist = JSON.parse(event.newValue) || [];
+      todolist.innerHTML = "";
+      checklist.forEach(({ text, checked }) => addChecklistItem(text, checked));
+      updateClearButtonVisibility();
+    }
+  });
+
+  loadChecklist();
+  updateClearButtonVisibility();
 };
 
 /**********************/
@@ -480,417 +454,413 @@ const svgCache = new Map();
 const linksContainer = document.getElementById("links-container");
 
 const loadIconsData = async () => {
-    if (iconsData.length === 0) {
-        const response = await fetch("assets/icons/icons.json");
-        iconsData = await response.json();
-    }
+  if (iconsData.length === 0) {
+    const response = await fetch("assets/icons/icons.json");
+    iconsData = await response.json();
+  }
 };
 
 const fetchSvgOrDefault = async (name) => {
-    await loadIconsData();
+  await loadIconsData();
 
-    const match = iconsData.find(
-        (item) =>
-            item.slug.toLowerCase() === name.toLowerCase() ||
-            item.title.toLowerCase() === name.toLowerCase(),
+  const match = iconsData.find(
+    (item) =>
+      item.slug.toLowerCase() === name.toLowerCase() ||
+      item.title.toLowerCase() === name.toLowerCase(),
+  );
+  const slugToUse = match ? match.slug : name;
+
+  if (svgCache.has(slugToUse)) {
+    return svgCache.get(slugToUse);
+  }
+
+  try {
+    const svgResponse = await fetch(`assets/icons/icons/${slugToUse}.svg`);
+    if (!svgResponse.ok) throw new Error("SVG not found");
+
+    const svgText = await svgResponse.text();
+    svgCache.set(slugToUse, svgText);
+    return svgText;
+  } catch {
+    const defaultText = await fetch("assets/icons/default.svg").then((res) =>
+      res.text(),
     );
-    const slugToUse = match ? match.slug : name;
-
-    if (svgCache.has(slugToUse)) {
-        return svgCache.get(slugToUse);
-    }
-
-    try {
-        const svgResponse = await fetch(`assets/icons/icons/${slugToUse}.svg`);
-        if (!svgResponse.ok) throw new Error("SVG not found");
-
-        const svgText = await svgResponse.text();
-        svgCache.set(slugToUse, svgText);
-        return svgText;
-    } catch {
-        const defaultText = await fetch("assets/icons/default.svg").then(
-            (res) => res.text(),
-        );
-        svgCache.set(slugToUse, defaultText);
-        return defaultText;
-    }
+    svgCache.set(slugToUse, defaultText);
+    return defaultText;
+  }
 };
 
 // --- Add Bookmark Button Logic ---
-document.getElementById('add-bookmark').addEventListener('click', () => {
-    // Open modal to add bookmark
-    const modal = document.getElementById('bookmark-modal');
-    const modalName = document.getElementById('modal-name');
-    const modalUrl = document.getElementById('modal-url');
-    modalName.value = '';
-    modalUrl.value = '';
-    modal.classList.remove('hidden');
-    modalName.focus();
-    // prevent background scroll while modal open
-    document.body.style.overflow = 'hidden';
+document.getElementById("add-bookmark").addEventListener("click", () => {
+  // Open modal to add bookmark
+  const modal = document.getElementById("bookmark-modal");
+  const modalName = document.getElementById("modal-name");
+  const modalUrl = document.getElementById("modal-url");
+  modalName.value = "";
+  modalUrl.value = "";
+  modal.classList.remove("hidden");
+  modalName.focus();
+  // prevent background scroll while modal open
+  document.body.style.overflow = "hidden";
 });
 
 // Modal actions
-document.getElementById('modal-cancel').addEventListener('click', () => {
-    document.getElementById('bookmark-modal').classList.add('hidden');
-    document.body.style.overflow = '';
+document.getElementById("modal-cancel").addEventListener("click", () => {
+  document.getElementById("bookmark-modal").classList.add("hidden");
+  document.body.style.overflow = "";
 });
-document.getElementById('modal-save').addEventListener('click', () => {
-    const name = document.getElementById('modal-name').value.trim();
-    const url = document.getElementById('modal-url').value.trim();
-    if (!name || !url) return;
+document.getElementById("modal-save").addEventListener("click", () => {
+  const name = document.getElementById("modal-name").value.trim();
+  const url = document.getElementById("modal-url").value.trim();
+  if (!name || !url) return;
 
-    // Create button and persist
-    const button = document.createElement('button');
-    button.className = 'link-button';
-    button.textContent = name.toLowerCase();
-    button.dataset.text2 = url;
+  // Create button and persist
+  const button = document.createElement("button");
+  button.className = "link-button";
+  button.textContent = name.toLowerCase();
+  button.dataset.text2 = url;
 
-    // append to DOM, save and re-render
-    // ensure url has http(s)
-    let normalizedUrl = url;
-    if (!/^https?:\/\//i.test(normalizedUrl)) {
-        normalizedUrl = 'https://' + normalizedUrl;
-    }
+  // append to DOM, save and re-render
+  // ensure url has http(s)
+  let normalizedUrl = url;
+  if (!/^https?:\/\//i.test(normalizedUrl)) {
+    normalizedUrl = "https://" + normalizedUrl;
+  }
 
-    const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || '[]');
-    links.push({ text1: button.textContent.toLowerCase(), text2: normalizedUrl });
-    localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
-    document.getElementById('bookmark-modal').classList.add('hidden');
-    document.body.style.overflow = '';
-    initializeGrid();
+  const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || "[]");
+  links.push({ text1: button.textContent.toLowerCase(), text2: normalizedUrl });
+  localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
+  document.getElementById("bookmark-modal").classList.add("hidden");
+  document.body.style.overflow = "";
+  initializeGrid();
 });
 
 // Close modal when clicking outside the modal-content
-document.getElementById('bookmark-modal').addEventListener('click', (e) => {
-    const content = document.querySelector('.modal-content');
-    if (!content) return;
-    if (!content.contains(e.target)) {
-        document.getElementById('bookmark-modal').classList.add('hidden');
-        document.body.style.overflow = '';
-    }
+document.getElementById("bookmark-modal").addEventListener("click", (e) => {
+  const content = document.querySelector(".modal-content");
+  if (!content) return;
+  if (!content.contains(e.target)) {
+    document.getElementById("bookmark-modal").classList.add("hidden");
+    document.body.style.overflow = "";
+  }
 });
 
 // Close modal with Escape key
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        const modal = document.getElementById('bookmark-modal');
-        if (modal && !modal.classList.contains('hidden')) {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const modal = document.getElementById("bookmark-modal");
+    if (modal && !modal.classList.contains("hidden")) {
+      modal.classList.add("hidden");
+      document.body.style.overflow = "";
     }
+  }
 });
 
 const handleButtonClick = (event, button) => {
-    event.stopPropagation();
-    const link = button.dataset.text2;
-    if (button.classList.contains('editing')) return;
+  event.stopPropagation();
+  const link = button.dataset.text2;
+  if (button.classList.contains("editing")) return;
 
-    // If bookmark has a link and user holds Ctrl/Cmd, show removal confirmation
-    if (link && (event.ctrlKey || event.metaKey)) {
-        const name = (button.textContent || '').trim();
-        if (confirm(`Remove bookmark "${name}"?`)) {
-            // Remove from storage
-            const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || '[]');
-            const filtered = links.filter(l => !(l.text2 === link && l.text1 === name));
-            localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
-            initializeGrid();
-        }
-        return;
+  // If bookmark has a link and user holds Ctrl/Cmd, show removal confirmation
+  if (link && (event.ctrlKey || event.metaKey)) {
+    const name = (button.textContent || "").trim();
+    if (confirm(`Remove bookmark "${name}"?`)) {
+      // Remove from storage
+      const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || "[]");
+      const filtered = links.filter(
+        (l) => !(l.text2 === link && l.text1 === name),
+      );
+      localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
+      initializeGrid();
     }
+    return;
+  }
 
-    // Normal click - open link
-    if (link) {
-        window.location.href = link;
-    }
+  // Normal click - open link
+  if (link) {
+    window.location.href = link;
+  }
 };
 
 const addButtonToGrid = (pair, index, fragment = null) => {
-    const button = document.createElement("button");
-    button.className = "link-button";
-    button.dataset.text2 = pair.text2 || "";
-    button.dataset.index = index;
+  const button = document.createElement("button");
+  button.className = "link-button";
+  button.dataset.text2 = pair.text2 || "";
+  button.dataset.index = index;
 
-    if (pair.text1) {
-        const textSpan = document.createElement("span");
-        textSpan.textContent = pair.text1;
-        textSpan.className = "button-text";
+  if (pair.text1) {
+    const textSpan = document.createElement("span");
+    textSpan.textContent = pair.text1;
+    textSpan.className = "button-text";
 
-        fetchSvgOrDefault(pair.text1)
-            .then((svgContent) => {
-                const parser = new DOMParser();
-                const svgElement = parser.parseFromString(
-                    svgContent,
-                    "image/svg+xml",
-                ).documentElement;
+    fetchSvgOrDefault(pair.text1)
+      .then((svgContent) => {
+        const parser = new DOMParser();
+        const svgElement = parser.parseFromString(
+          svgContent,
+          "image/svg+xml",
+        ).documentElement;
 
-                const titleElement = svgElement.querySelector("title");
-                if (titleElement) titleElement.remove();
+        const titleElement = svgElement.querySelector("title");
+        if (titleElement) titleElement.remove();
 
-                const match = iconsData.find(
-                    (item) =>
-                        item.slug.toLowerCase() === pair.text1.toLowerCase() ||
-                        item.title.toLowerCase() === pair.text1.toLowerCase(),
-                );
-                if (match) svgElement.setAttribute("fill", `#${match.hex}`);
+        const match = iconsData.find(
+          (item) =>
+            item.slug.toLowerCase() === pair.text1.toLowerCase() ||
+            item.title.toLowerCase() === pair.text1.toLowerCase(),
+        );
+        if (match) svgElement.setAttribute("fill", `#${match.hex}`);
 
-                svgElement.classList.add("icon");
+        svgElement.classList.add("icon");
 
-                button.appendChild(svgElement);
-                button.appendChild(textSpan);
+        button.appendChild(svgElement);
+        button.appendChild(textSpan);
 
-                [textSpan, svgElement].forEach((el) => {
-                    el.addEventListener("click", (e) =>
-                        handleButtonClick(e, button),
-                    );
-                    el.addEventListener("auxclick", (e) =>
-                        handleButtonClick(e, button),
-                    );
-                });
-            })
-            .catch((error) => console.error("Error handling SVG:", error));
-    } else {
-        // Empty tile - add placeholder content to maintain size
-        const placeholderDiv = document.createElement("div");
-        placeholderDiv.style.height = "50px"; // Same as icon height
-        placeholderDiv.style.width = "100%";
-        button.appendChild(placeholderDiv);
-    }
+        [textSpan, svgElement].forEach((el) => {
+          el.addEventListener("click", (e) => handleButtonClick(e, button));
+          el.addEventListener("auxclick", (e) => handleButtonClick(e, button));
+        });
+      })
+      .catch((error) => console.error("Error handling SVG:", error));
+  } else {
+    // Empty tile - add placeholder content to maintain size
+    const placeholderDiv = document.createElement("div");
+    placeholderDiv.style.height = "50px"; // Same as icon height
+    placeholderDiv.style.width = "100%";
+    button.appendChild(placeholderDiv);
+  }
 
-    // wrapper tile to position delete button
-    const tile = document.createElement('div');
-    tile.className = 'link-tile';
-    tile.appendChild(button);
+  // wrapper tile to position delete button
+  const tile = document.createElement("div");
+  tile.className = "link-tile";
+  tile.appendChild(button);
 
-    // delete button
-    const del = document.createElement('button');
-    del.className = 'delete-btn';
-    del.title = 'Delete';
-    del.innerHTML = '✕';
-    del.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // remove this link from storage by matching index or url
-        const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || '[]');
-        const url = button.dataset.text2 || '';
-        const name = (button.textContent || '').trim();
-        const filtered = links.filter(l => !(l.text2 === url && l.text1 === name));
-        localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
-        initializeGrid();
-    });
+  // delete button
+  const del = document.createElement("button");
+  del.className = "delete-btn";
+  del.title = "Delete";
+  del.innerHTML = "✕";
+  del.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // remove this link from storage by matching index or url
+    const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || "[]");
+    const url = button.dataset.text2 || "";
+    const name = (button.textContent || "").trim();
+    const filtered = links.filter(
+      (l) => !(l.text2 === url && l.text1 === name),
+    );
+    localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
+    initializeGrid();
+  });
 
-    tile.appendChild(del);
+  tile.appendChild(del);
 
-    // clicking the button opens the link
-    button.addEventListener("click", (event) => {
-        handleButtonClick(event, button);
-    });
-    button.addEventListener("auxclick", (event) => {
-        handleButtonClick(event, button);
-    });
+  // clicking the button opens the link
+  button.addEventListener("click", (event) => {
+    handleButtonClick(event, button);
+  });
+  button.addEventListener("auxclick", (event) => {
+    handleButtonClick(event, button);
+  });
 
-    (fragment || linksContainer).appendChild(tile);
+  (fragment || linksContainer).appendChild(tile);
 };
 
 const saveLinks = () => {
-    const buttons = Array.from(linksContainer.querySelectorAll(".link-button"));
-    const links = buttons
-        .map((btn) => {
-            const text1 = btn.textContent.trim();
-            const text2 = btn.dataset.text2 || "";
+  const buttons = Array.from(linksContainer.querySelectorAll(".link-button"));
+  const links = buttons
+    .map((btn) => {
+      const text1 = btn.textContent.trim();
+      const text2 = btn.dataset.text2 || "";
 
-            if (text1 && text2) {
-                return { text1, text2 };
-            }
-            return null;
-        })
-        .filter((link) => link !== null);
+      if (text1 && text2) {
+        return { text1, text2 };
+      }
+      return null;
+    })
+    .filter((link) => link !== null);
 
-    links.sort((a, b) => a.text1.localeCompare(b.text1));
+  links.sort((a, b) => a.text1.localeCompare(b.text1));
 
-    if (links.length > 0) {
-        localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
-    } else {
-        localStorage.removeItem(LINKS_STORAGE_KEY);
-    }
+  if (links.length > 0) {
+    localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
+  } else {
+    localStorage.removeItem(LINKS_STORAGE_KEY);
+  }
 };
 
 const initializeGrid = () => {
-    const savedLinks =
-        JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY)) || [];
-    savedLinks.sort((a, b) => a.text1.localeCompare(b.text1));
+  const savedLinks = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY)) || [];
+  savedLinks.sort((a, b) => a.text1.localeCompare(b.text1));
 
-    const columns = 3;
-    const totalLinks = savedLinks.length;
-    const totalRows = Math.ceil(totalLinks / columns);
-    const isLastRowComplete = totalLinks % columns === 0;
-    const rowsToShow = isLastRowComplete ? totalRows + 1 : totalRows;
+  const columns = 3;
+  const totalLinks = savedLinks.length;
+  const totalRows = Math.ceil(totalLinks / columns);
+  const isLastRowComplete = totalLinks % columns === 0;
+  const rowsToShow = isLastRowComplete ? totalRows + 1 : totalRows;
 
-    linksContainer.innerHTML = "";
-    const fragment = document.createDocumentFragment();
+  linksContainer.innerHTML = "";
+  const fragment = document.createDocumentFragment();
 
-    for (let i = 0; i < rowsToShow * columns; i++) {
-        addButtonToGrid(savedLinks[i] || { text1: "", text2: "" }, i, fragment);
-    }
+  for (let i = 0; i < rowsToShow * columns; i++) {
+    addButtonToGrid(savedLinks[i] || { text1: "", text2: "" }, i, fragment);
+  }
 
-    linksContainer.appendChild(fragment);
+  linksContainer.appendChild(fragment);
 };
 
 const editButton = (button) => {
-    const currentText = button.textContent;
-    const currentText1 = currentText.trim();
-    const currentText2 = button.dataset.text2 || "";
+  const currentText = button.textContent;
+  const currentText1 = currentText.trim();
+  const currentText2 = button.dataset.text2 || "";
 
-    const container = document.createElement("div");
-    container.className = "link-edit-container";
+  const container = document.createElement("div");
+  container.className = "link-edit-container";
 
-    const input1 = document.createElement("input");
-    input1.type = "text";
-    input1.value = currentText1 || "";
-    input1.className = "button-edit-input";
-    input1.placeholder = "name";
+  const input1 = document.createElement("input");
+  input1.type = "text";
+  input1.value = currentText1 || "";
+  input1.className = "button-edit-input";
+  input1.placeholder = "name";
 
-    const input2 = document.createElement("input");
-    input2.type = "text";
-    input2.value = currentText2 || "";
-    input2.className = "button-edit-input";
-    input2.placeholder = "link";
+  const input2 = document.createElement("input");
+  input2.type = "text";
+  input2.value = currentText2 || "";
+  input2.className = "button-edit-input";
+  input2.placeholder = "link";
 
-    container.appendChild(input1);
-    container.appendChild(input2);
-    button.replaceWith(container);
-    input1.focus();
+  container.appendChild(input1);
+  container.appendChild(input2);
+  button.replaceWith(container);
+  input1.focus();
 
-    const saveInput = (status) => {
-        const newText1 = status === 0 ? input1.value.trim().toLowerCase() : "";
-        const newText2 = status === 0 ? input2.value.trim() : "";
+  const saveInput = (status) => {
+    const newText1 = status === 0 ? input1.value.trim().toLowerCase() : "";
+    const newText2 = status === 0 ? input2.value.trim() : "";
 
-        if (newText1 === currentText1 && newText2 === currentText2) {
-            container.replaceWith(button);
-            return;
-        }
+    if (newText1 === currentText1 && newText2 === currentText2) {
+      container.replaceWith(button);
+      return;
+    }
 
-        if (
-            currentText1 === "" &&
-            currentText2 === "" &&
-            (input1.value.trim().toLowerCase() === "" ||
-                input2.value.trim() === "")
-        ) {
-            container.replaceWith(button);
-            return;
-        }
+    if (
+      currentText1 === "" &&
+      currentText2 === "" &&
+      (input1.value.trim().toLowerCase() === "" || input2.value.trim() === "")
+    ) {
+      container.replaceWith(button);
+      return;
+    }
 
-        if (newText1 === "" || newText2 === "") {
-            button.textContent = "";
-            button.dataset.text2 = "";
-        } else {
-            button.textContent = newText1;
-            button.dataset.text2 = newText2;
-        }
+    if (newText1 === "" || newText2 === "") {
+      button.textContent = "";
+      button.dataset.text2 = "";
+    } else {
+      button.textContent = newText1;
+      button.dataset.text2 = newText2;
+    }
 
-        container.replaceWith(button);
-        saveLinks();
-        initializeGrid();
-    };
+    container.replaceWith(button);
+    saveLinks();
+    initializeGrid();
+  };
 
-    const cancelEdit = () => {
-        container.replaceWith(button);
-    };
+  const cancelEdit = () => {
+    container.replaceWith(button);
+  };
 
-    const handleBlur = () => {
-        setTimeout(() => {
-            if (!container.contains(document.activeElement)) {
-                saveInput(0);
-            }
-        }, 0);
-    };
+  const handleBlur = () => {
+    setTimeout(() => {
+      if (!container.contains(document.activeElement)) {
+        saveInput(0);
+      }
+    }, 0);
+  };
 
-    [input1, input2].forEach((input) => {
-        input.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                saveInput(0);
-            } else if (event.key === "Delete") {
-                saveInput(1);
-            } else if (event.key === "Escape") {
-                cancelEdit();
-            }
-        });
-        input.addEventListener("blur", handleBlur);
+  [input1, input2].forEach((input) => {
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        saveInput(0);
+      } else if (event.key === "Delete") {
+        saveInput(1);
+      } else if (event.key === "Escape") {
+        cancelEdit();
+      }
     });
+    input.addEventListener("blur", handleBlur);
+  });
 };
 
 window.addEventListener("storage", (event) => {
-    if (event.key === LINKS_STORAGE_KEY) {
-        const links = JSON.parse(event.newValue);
-        linksContainer.innerHTML = "";
-        const fragment = document.createDocumentFragment();
-        links.forEach((pair, index) => addButtonToGrid(pair, index, fragment));
-        linksContainer.appendChild(fragment);
-    }
+  if (event.key === LINKS_STORAGE_KEY) {
+    const links = JSON.parse(event.newValue);
+    linksContainer.innerHTML = "";
+    const fragment = document.createDocumentFragment();
+    links.forEach((pair, index) => addButtonToGrid(pair, index, fragment));
+    linksContainer.appendChild(fragment);
+  }
 });
 
 /**********************/
 /*     CLIPBOARD      */
 /**********************/
 const initializeClipboard = () => {
-    const container = document.querySelectorAll(
-        "#clipboard-container textarea",
+  const container = document.querySelectorAll("#clipboard-container textarea");
+
+  const saveClipboardData = () => {
+    container.forEach((textarea) =>
+      localStorage.setItem(textarea.id, textarea.value),
     );
+  };
 
-    const saveClipboardData = () => {
-        container.forEach((textarea) =>
-            localStorage.setItem(textarea.id, textarea.value),
-        );
-    };
-
-    const loadClipboardData = () => {
-        container.forEach((textarea) => {
-            const saved = localStorage.getItem(textarea.id);
-            if (saved !== null) {
-                textarea.value = saved;
-                updateTextareaStyle(textarea);
-            }
-        });
-    };
-
-    const updateTextareaStyle = (textarea) => {
-        const hasContent = textarea.value.trim() !== "";
-        textarea.style.borderBottom = hasContent
-            ? "rgba(0, 0, 0, 0.1) 5px solid"
-            : "none";
-        textarea.style.backgroundColor = hasContent
-            ? "rgba(0, 0, 0, 0.07)"
-            : "transparent";
-    };
-
+  const loadClipboardData = () => {
     container.forEach((textarea) => {
-        textarea.addEventListener("input", () => {
-            saveClipboardData();
-            updateTextareaStyle(textarea);
-        });
+      const saved = localStorage.getItem(textarea.id);
+      if (saved !== null) {
+        textarea.value = saved;
+        updateTextareaStyle(textarea);
+      }
+    });
+  };
 
-        textarea.addEventListener("click", (event) => {
-            if (event.altKey) {
-                navigator.clipboard.writeText(textarea.value);
-            } else if (event.ctrlKey) {
-                textarea.value = "";
-                updateTextareaStyle(textarea);
-                saveClipboardData();
-            }
-        });
+  const updateTextareaStyle = (textarea) => {
+    const hasContent = textarea.value.trim() !== "";
+    textarea.style.borderBottom = hasContent
+      ? "rgba(0, 0, 0, 0.1) 5px solid"
+      : "none";
+    textarea.style.backgroundColor = hasContent
+      ? "rgba(0, 0, 0, 0.07)"
+      : "transparent";
+  };
+
+  container.forEach((textarea) => {
+    textarea.addEventListener("input", () => {
+      saveClipboardData();
+      updateTextareaStyle(textarea);
     });
 
-    window.addEventListener("load", loadClipboardData);
-
-    window.addEventListener("storage", (event) => {
-        if (event.key?.startsWith("clipboard-")) {
-            const textarea = document.getElementById(event.key);
-            if (textarea) {
-                textarea.value = event.newValue || "";
-                updateTextareaStyle(textarea);
-            }
-        }
+    textarea.addEventListener("click", (event) => {
+      if (event.altKey) {
+        navigator.clipboard.writeText(textarea.value);
+      } else if (event.ctrlKey) {
+        textarea.value = "";
+        updateTextareaStyle(textarea);
+        saveClipboardData();
+      }
     });
+  });
+
+  window.addEventListener("load", loadClipboardData);
+
+  window.addEventListener("storage", (event) => {
+    if (event.key?.startsWith("clipboard-")) {
+      const textarea = document.getElementById(event.key);
+      if (textarea) {
+        textarea.value = event.newValue || "";
+        updateTextareaStyle(textarea);
+      }
+    }
+  });
 };
 
 /**********************/
@@ -902,167 +872,167 @@ const notepad = document.getElementById("notepad");
 const notepadLines = document.getElementById("notepad-lines");
 
 const updateLinesHeight = () => {
-    notepadLines.style.height = `${notepad.scrollHeight}px`;
+  notepadLines.style.height = `${notepad.scrollHeight}px`;
 };
 
 const initializeNotepad = () => {
-    const loadContent = () => {
-        const saved = localStorage.getItem(NOTEPAD_STORAGE_KEY);
-        if (saved) notepad.value = saved;
-        updateLinesHeight();
-    };
+  const loadContent = () => {
+    const saved = localStorage.getItem(NOTEPAD_STORAGE_KEY);
+    if (saved) notepad.value = saved;
+    updateLinesHeight();
+  };
 
-    const saveContent = () => {
-        localStorage.setItem(NOTEPAD_STORAGE_KEY, notepad.value);
-    };
+  const saveContent = () => {
+    localStorage.setItem(NOTEPAD_STORAGE_KEY, notepad.value);
+  };
 
-    notepad.addEventListener("input", () => {
-        saveContent();
-        updateLinesHeight();
-    });
+  notepad.addEventListener("input", () => {
+    saveContent();
+    updateLinesHeight();
+  });
 
-    notepad.addEventListener("scroll", () => {
-        notepadLines.style.transform = `translateY(-${notepad.scrollTop}px)`;
-    });
+  notepad.addEventListener("scroll", () => {
+    notepadLines.style.transform = `translateY(-${notepad.scrollTop}px)`;
+  });
 
-    window.addEventListener("resize", updateLinesHeight);
+  window.addEventListener("resize", updateLinesHeight);
 
-    window.addEventListener("storage", (event) => {
-        if (event.key === NOTEPAD_STORAGE_KEY) {
-            notepad.value = event.newValue || "";
-            updateLinesHeight();
-        }
-    });
+  window.addEventListener("storage", (event) => {
+    if (event.key === NOTEPAD_STORAGE_KEY) {
+      notepad.value = event.newValue || "";
+      updateLinesHeight();
+    }
+  });
 
-    loadContent();
+  loadContent();
 };
 
 // Individual clipboard copy/paste buttons
-document.querySelectorAll('.clipboard-copy').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        try {
-            const clipboardId = btn.dataset.clipboard;
-            const textarea = document.getElementById(clipboardId);
-            if (textarea && textarea.value) {
-                await navigator.clipboard.writeText(textarea.value);
-                // Visual feedback
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = 'Copy', 1000);
-            }
-        } catch (err) {
-            console.error('Copy failed', err);
-            btn.textContent = 'Error';
-            setTimeout(() => btn.textContent = 'Copy', 1000);
-        }
-    });
+document.querySelectorAll(".clipboard-copy").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    try {
+      const clipboardId = btn.dataset.clipboard;
+      const textarea = document.getElementById(clipboardId);
+      if (textarea && textarea.value) {
+        await navigator.clipboard.writeText(textarea.value);
+        // Visual feedback
+        btn.textContent = "Copied!";
+        setTimeout(() => (btn.textContent = "Copy"), 1000);
+      }
+    } catch (err) {
+      console.error("Copy failed", err);
+      btn.textContent = "Error";
+      setTimeout(() => (btn.textContent = "Copy"), 1000);
+    }
+  });
 });
 
-document.querySelectorAll('.clipboard-paste').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        try {
-            const paste = await navigator.clipboard.readText();
-            const clipboardId = btn.dataset.clipboard;
-            const textarea = document.getElementById(clipboardId);
-            if (textarea) {
-                textarea.value = paste;
-                textarea.dispatchEvent(new Event('input'));
-                // Visual feedback
-                btn.textContent = 'Pasted!';
-                setTimeout(() => btn.textContent = 'Paste', 1000);
-            }
-        } catch (err) {
-            console.error('Paste failed', err);
-            btn.textContent = 'Error';
-            setTimeout(() => btn.textContent = 'Paste', 1000);
-        }
-    });
+document.querySelectorAll(".clipboard-paste").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    try {
+      const paste = await navigator.clipboard.readText();
+      const clipboardId = btn.dataset.clipboard;
+      const textarea = document.getElementById(clipboardId);
+      if (textarea) {
+        textarea.value = paste;
+        textarea.dispatchEvent(new Event("input"));
+        // Visual feedback
+        btn.textContent = "Pasted!";
+        setTimeout(() => (btn.textContent = "Paste"), 1000);
+      }
+    } catch (err) {
+      console.error("Paste failed", err);
+      btn.textContent = "Error";
+      setTimeout(() => (btn.textContent = "Paste"), 1000);
+    }
+  });
 });
 
 /**********************/
 /*       BACKUP       */
 /**********************/
 const downloadLocalStorage = () => {
-    const data = JSON.stringify(localStorage);
-    const blob = new Blob([data], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
+  const data = JSON.stringify(localStorage);
+  const blob = new Blob([data], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "prodtab.config.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "prodtab.config.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 };
 
 const uploadLocalStorage = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "application/json";
-    input.style.display = "none";
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.style.display = "none";
 
-    input.addEventListener("change", (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+  input.addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (typeof data === "object" && data !== null) {
-                    Object.entries(data).forEach(([key, value]) =>
-                        localStorage.setItem(key, value),
-                    );
-                    location.reload();
-                    console.log("LocalStorage caricato con successo!");
-                } else {
-                    console.warn("Il file non è valido.");
-                }
-            } catch (err) {
-                console.error("Errore durante il caricamento del file.");
-            }
-        };
-        reader.readAsText(file);
-    });
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (typeof data === "object" && data !== null) {
+          Object.entries(data).forEach(([key, value]) =>
+            localStorage.setItem(key, value),
+          );
+          location.reload();
+          console.log("LocalStorage caricato con successo!");
+        } else {
+          console.warn("Il file non è valido.");
+        }
+      } catch (err) {
+        console.error("Errore durante il caricamento del file.");
+      }
+    };
+    reader.readAsText(file);
+  });
 
-    document.body.appendChild(input);
-    input.click();
-    document.body.removeChild(input);
+  document.body.appendChild(input);
+  input.click();
+  document.body.removeChild(input);
 };
 
 const initializeBackup = () => {
-    document
-        .getElementById("calendar-card")
-        .addEventListener("click", (event) => {
-            if (event.altKey) {
-                uploadLocalStorage();
-            } else if (event.ctrlKey) {
-                downloadLocalStorage();
-            }
-        });
+  document
+    .getElementById("calendar-card")
+    .addEventListener("click", (event) => {
+      if (event.altKey) {
+        uploadLocalStorage();
+      } else if (event.ctrlKey) {
+        downloadLocalStorage();
+      }
+    });
 };
 
 /**********************/
 /*        INIT        */
 /**********************/
 function initializeLocalStorage() {
-    const defaults = {
-        dynamicbackground: "true",
-        "clipboard-1": "",
-        "clipboard-2": "",
-        "clipboard-3": "",
-        "clipboard-4": "",
-        "clipboard-5": "",
-        "notepad-content": "",
-        "links-content": "[]",
-        "todolist-content": "[]",
-    };
+  const defaults = {
+    dynamicbackground: "true",
+    "clipboard-1": "",
+    "clipboard-2": "",
+    "clipboard-3": "",
+    "clipboard-4": "",
+    "clipboard-5": "",
+    "notepad-content": "",
+    "links-content": "[]",
+    "todolist-content": "[]",
+  };
 
-    Object.entries(defaults).forEach(([key, value]) => {
-        if (!localStorage.hasOwnProperty(key)) {
-            localStorage.setItem(key, value);
-        }
-    });
+  Object.entries(defaults).forEach(([key, value]) => {
+    if (!localStorage.hasOwnProperty(key)) {
+      localStorage.setItem(key, value);
+    }
+  });
 }
 
 /**********************/
@@ -1070,134 +1040,143 @@ function initializeLocalStorage() {
 /**********************/
 
 // Date format modal handlers
-document.addEventListener('click', (e) => {
-    // Close modal when clicking outside
-    if (e.target.id === 'date-modal') {
-        document.getElementById('date-modal').classList.add('hidden');
+document.addEventListener("click", (e) => {
+  // Close modal when clicking outside
+  if (e.target.id === "date-modal") {
+    document.getElementById("date-modal").classList.add("hidden");
+  }
+
+  // Handle date format button clicks
+  if (e.target.classList.contains("date-format-btn")) {
+    const format = e.target.dataset.format;
+    const date = window.selectedCalendarDate;
+
+    if (date) {
+      let formattedDate;
+
+      switch (format) {
+        case "MM/DD/YYYY":
+          formattedDate = date.toLocaleDateString("en-US");
+          break;
+        case "DD/MM/YYYY":
+          formattedDate = date.toLocaleDateString("en-GB");
+          break;
+        case "YYYY-MM-DD":
+          formattedDate = date.toISOString().split("T")[0];
+          break;
+        case "Mon DD, YYYY":
+          formattedDate = date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
+          break;
+        default:
+          formattedDate = date.toLocaleDateString("en-US");
+      }
+
+      // Copy to clipboard
+      navigator.clipboard
+        .writeText(formattedDate)
+        .then(() => {
+          // Visual feedback
+          e.target.textContent = "Copied!";
+          setTimeout(() => {
+            e.target.textContent = format;
+          }, 1000);
+        })
+        .catch(console.error);
+
+      // Close modal after short delay
+      setTimeout(() => {
+        document.getElementById("date-modal").classList.add("hidden");
+      }, 1200);
     }
-
-    // Handle date format button clicks
-    if (e.target.classList.contains('date-format-btn')) {
-        const format = e.target.dataset.format;
-        const date = window.selectedCalendarDate;
-
-        if (date) {
-            let formattedDate;
-
-            switch (format) {
-                case 'MM/DD/YYYY':
-                    formattedDate = date.toLocaleDateString('en-US');
-                    break;
-                case 'DD/MM/YYYY':
-                    formattedDate = date.toLocaleDateString('en-GB');
-                    break;
-                case 'YYYY-MM-DD':
-                    formattedDate = date.toISOString().split('T')[0];
-                    break;
-                case 'Mon DD, YYYY':
-                    formattedDate = date.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                    break;
-                default:
-                    formattedDate = date.toLocaleDateString('en-US');
-            }
-
-            // Copy to clipboard
-            navigator.clipboard.writeText(formattedDate).then(() => {
-                // Visual feedback
-                e.target.textContent = 'Copied!';
-                setTimeout(() => {
-                    e.target.textContent = format;
-                }, 1000);
-            }).catch(console.error);
-
-            // Close modal after short delay
-            setTimeout(() => {
-                document.getElementById('date-modal').classList.add('hidden');
-            }, 1200);
-        }
-    }
+  }
 });
 
 // Date modal cancel button
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('date-modal-cancel')?.addEventListener('click', () => {
-        document.getElementById('date-modal').classList.add('hidden');
+document.addEventListener("DOMContentLoaded", () => {
+  document
+    .getElementById("date-modal-cancel")
+    ?.addEventListener("click", () => {
+      document.getElementById("date-modal").classList.add("hidden");
     });
 
-    // Reminder modal handlers
-    const reminderModal = document.getElementById('reminder-modal');
-    const reminderText = document.getElementById('reminder-text');
-    const reminderHour = document.getElementById('reminder-hour');
-    const reminderMinute = document.getElementById('reminder-minute');
+  // Reminder modal handlers
+  const reminderModal = document.getElementById("reminder-modal");
+  const reminderText = document.getElementById("reminder-text");
+  const reminderHour = document.getElementById("reminder-hour");
+  const reminderMinute = document.getElementById("reminder-minute");
 
-    document.getElementById('reminder-cancel')?.addEventListener('click', () => {
-        reminderModal.classList.add('hidden');
-        reminderText.value = '';
-        reminderHour.value = '09';
-        reminderMinute.value = '00';
+  document.getElementById("reminder-cancel")?.addEventListener("click", () => {
+    reminderModal.classList.add("hidden");
+    reminderText.value = "";
+    reminderHour.value = "09";
+    reminderMinute.value = "00";
+  });
+
+  document.getElementById("reminder-save")?.addEventListener("click", () => {
+    const text = reminderText.value.trim();
+    const hour = String(reminderHour.value).padStart(2, "0");
+    const minute = String(reminderMinute.value).padStart(2, "0");
+    const time = `${hour}:${minute}`;
+
+    if (!text) {
+      alert("Please enter reminder text");
+      return;
+    }
+
+    const date = window.selectedCalendarDate;
+    if (!date) return;
+
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+    const reminders = JSON.parse(
+      localStorage.getItem("calendar-reminders") || "[]",
+    );
+    reminders.push({
+      date: dateStr,
+      text: text,
+      time: time,
+      created: new Date().toISOString(),
     });
+    localStorage.setItem("calendar-reminders", JSON.stringify(reminders));
 
-    document.getElementById('reminder-save')?.addEventListener('click', () => {
-        const text = reminderText.value.trim();
-        const hour = String(reminderHour.value).padStart(2, '0');
-        const minute = String(reminderMinute.value).padStart(2, '0');
-        const time = `${hour}:${minute}`;
+    reminderModal.classList.add("hidden");
+    reminderText.value = "";
+    reminderHour.value = "09";
+    reminderMinute.value = "00";
 
-        if (!text) {
-            alert('Please enter reminder text');
-            return;
-        }
+    // Refresh calendar to show reminder dot
+    if (typeof initializeDateTimeAndCalendar !== "undefined") {
+      const event = new CustomEvent("calendar-refresh");
+      document.dispatchEvent(event);
+    }
 
-        const date = window.selectedCalendarDate;
-        if (!date) return;
+    alert(
+      `Reminder set for ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
+    );
+  });
 
-        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-
-        const reminders = JSON.parse(localStorage.getItem('calendar-reminders') || '[]');
-        reminders.push({
-            date: dateStr,
-            text: text,
-            time: time,
-            created: new Date().toISOString()
-        });
-        localStorage.setItem('calendar-reminders', JSON.stringify(reminders));
-
-        reminderModal.classList.add('hidden');
-        reminderText.value = '';
-        reminderHour.value = '09';
-        reminderMinute.value = '00';
-
-        // Refresh calendar to show reminder dot
-        if (typeof initializeDateTimeAndCalendar !== 'undefined') {
-            const event = new CustomEvent('calendar-refresh');
-            document.dispatchEvent(event);
-        }
-
-        alert(`Reminder set for ${date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`);
-    });
-
-    // Close modals when clicking outside
-    reminderModal?.addEventListener('click', (e) => {
-        if (e.target === reminderModal) {
-            reminderModal.classList.add('hidden');
-            reminderText.value = '';
-            reminderHour.value = '09';
-            reminderMinute.value = '00';
-        }
-    });
+  // Close modals when clicking outside
+  reminderModal?.addEventListener("click", (e) => {
+    if (e.target === reminderModal) {
+      reminderModal.classList.add("hidden");
+      reminderText.value = "";
+      reminderHour.value = "09";
+      reminderMinute.value = "00";
+    }
+  });
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    initializeLocalStorage();
-    initializeDynamicBackground();
-    initializeDateTimeAndCalendar();
-    initializeTodoList();
-    initializeGrid();
-    initializeClipboard();
-    initializeNotepad();
-    initializeBackup();
+  initializeLocalStorage();
+  initializeDynamicBackground();
+  initializeDateTimeAndCalendar();
+  initializeTodoList();
+  initializeGrid();
+  initializeClipboard();
+  initializeNotepad();
+  initializeBackup();
 });
