@@ -1,5 +1,3 @@
-// file 3 of 3 (minimal)
-// TEST CONFIGURATION
 const TEST_CONFIG = {
   forceTheme: false, // "dark", "light", or false
   forceWeather: false, // 0 (clear), 61 (rain), 71 (snow), 95 (storm), or false
