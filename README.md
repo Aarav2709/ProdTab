@@ -44,6 +44,13 @@ Use the unpacked extension flow:
 5. Select the `ProdTab` project folder (the folder that contains `manifest.json`).
 6. Open a new tab to use ProdTab.
 
+#### Set Hosted ProdTab On Browser Startup
+
+1. Open browser **Settings**.
+2. Go to **On startup**.
+3. Select **Open a specific page or set of pages**.
+4. Add `https://prodtab.vercel.app`.
+
 ### Firefox-based Browsers (Firefox and derivatives)
 
 Choose one of the following:
@@ -54,6 +61,12 @@ Choose one of the following:
 	- Open `about:debugging#/runtime/this-firefox`
 	- Click **Load Temporary Add-on...**
 	- Select the `manifest.json` file from this project
+
+#### Set Hosted ProdTab On Browser Startup
+
+1. Open `about:preferences#home`.
+2. Under **Homepage and new windows**, choose **Custom URLs...**.
+3. Enter `https://prodtab.vercel.app`.
 
 ## Local Development
 
