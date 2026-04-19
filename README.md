@@ -28,6 +28,33 @@ This project is inspired by work from the original author:
 - Vanilla JavaScript
 - Open-Meteo APIs (geocoding + forecast)
 
+## Installation
+
+### Chromium-based Browsers (Chrome, Edge, Brave, Arc, Vivaldi, etc.)
+
+Use the unpacked extension flow:
+
+1. Download or clone this repository.
+2. Open your browser extension page:
+	- Chrome: `chrome://extensions`
+	- Edge: `edge://extensions`
+	- Brave: `brave://extensions`
+3. Enable **Developer mode**.
+4. Click **Load unpacked**.
+5. Select the `ProdTab` project folder (the folder that contains `manifest.json`).
+6. Open a new tab to use ProdTab.
+
+### Firefox-based Browsers (Firefox and derivatives)
+
+Choose one of the following:
+
+1. Install from the Firefox Add-ons store (recommended):
+	- https://addons.mozilla.org/en-US/firefox/addon/prodtab
+2. Manually load the extension:
+	- Open `about:debugging#/runtime/this-firefox`
+	- Click **Load Temporary Add-on...**
+	- Select the `manifest.json` file from this project
+
 ## Local Development
 
 1. Clone the repository.
