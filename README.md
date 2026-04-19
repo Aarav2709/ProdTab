@@ -82,3 +82,9 @@ Choose one of the following:
 ## License
 
  GPL-3.0 license, for more informations see `LICENSE`.
+
+## Contribution
+
+If you want to contribute feel free to make a pull request.
+Please document your code well to minimize review times. If you want to
+help translating feel free to let us know (under Issiues)
