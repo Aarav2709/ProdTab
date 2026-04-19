@@ -10,6 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Lora:ital@1&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <link rel="icon" type="image/png" href="./assets/icons/icon.png" />
     <link rel="stylesheet" href="./assets/style.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   </head>
@@ -53,10 +54,49 @@
     <div id="dynamic-effects"></div>
     <canvas class="fireworks-canvas" id="fireworks-canvas"></canvas>
 
+    <div class="top-actions">
+      <button
+        class="top-action-btn theme-toggle-btn"
+        id="theme-toggle-btn"
+        type="button"
+        aria-label="Switch theme"
+        title="Switch theme"
+      >
+        <span class="theme-icon theme-icon-sun" aria-hidden="true">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <line x1="12" y1="2" x2="12" y2="4" />
+            <line x1="12" y1="20" x2="12" y2="22" />
+            <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+            <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+            <line x1="2" y1="12" x2="4" y2="12" />
+            <line x1="20" y1="12" x2="22" y2="12" />
+            <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+            <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+          </svg>
+        </span>
+        <span class="theme-icon theme-icon-moon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        </span>
+      </button>
+
+      <button
+        class="top-action-btn add-bookmark-btn"
+        id="add-bookmark-btn"
+        type="button"
+        aria-label="Add bookmark"
+        title="Add bookmark"
+      >
+        <span aria-hidden="true">+</span>
+      </button>
+    </div>
+
     <main class="container">
       <div class="header">
         <div class="time" id="clock">00:00</div>
-        <div class="greeting" id="greeting">Welcome back, snes.</div>
+        <div class="greeting" id="greeting">Welcome back.</div>
       </div>
 
       <div class="search-wrapper">
@@ -73,15 +113,84 @@
       <nav class="shortcuts" id="links"></nav>
     </main>
 
-    <a
-      href="https://www.google.com/search?q=toronto+weather+14+day+forecast"
-      class="weather"
-      id="weather"
-      title="View 14-day forecast"
-    >
-      <span id="wx-emoji"></span>
+    <div class="weather" id="weather" aria-live="polite">
       <span id="wx-temp">--°</span>
-    </a>
+      <span id="wx-city"></span>
+      <button
+        class="wx-unit-toggle"
+        id="wx-unit-toggle"
+        type="button"
+        aria-label="Switch to Fahrenheit"
+        title="Switch to Fahrenheit"
+      >
+        C
+      </button>
+    </div>
+
+    <div class="onboarding-overlay hidden" id="onboarding-overlay" aria-hidden="true">
+      <form class="onboarding-card" id="onboarding-form">
+        <h2>Welcome to ProdTab</h2>
+        <p>Set up your name and city once. You can change them any time.</p>
+
+        <label for="onboarding-name">What's your name?</label>
+        <input
+          id="onboarding-name"
+          type="text"
+          autocomplete="name"
+          maxlength="40"
+          required
+        />
+
+        <label for="onboarding-city">Which city should weather use?</label>
+        <input
+          id="onboarding-city"
+          type="text"
+          autocomplete="address-level2"
+          maxlength="80"
+          required
+        />
+
+        <button class="onboarding-submit" type="submit">Save</button>
+      </form>
+    </div>
+
+    <div
+      class="bookmark-modal-overlay hidden"
+      id="bookmark-modal-overlay"
+      aria-hidden="true"
+    >
+      <form class="bookmark-modal-card" id="bookmark-form">
+        <h2 id="bookmark-modal-title">Add Bookmark</h2>
+
+        <label for="bookmark-name">Bookmark Name</label>
+        <input
+          id="bookmark-name"
+          type="text"
+          maxlength="40"
+          autocomplete="off"
+          required
+        />
+
+        <label for="bookmark-url">Bookmark URL</label>
+        <input
+          id="bookmark-url"
+          type="text"
+          maxlength="300"
+          autocomplete="url"
+          placeholder="https://example.com"
+          required
+        />
+
+        <p class="bookmark-modal-error hidden" id="bookmark-modal-error"></p>
+
+        <div class="bookmark-modal-actions">
+          <button class="tool-btn" id="bookmark-cancel-btn" type="button">
+            Cancel
+          </button>
+          <button class="onboarding-submit" type="submit">Save Bookmark</button>
+        </div>
+      </form>
+    </div>
 
     <script src="./assets/script.js"></script>
   </body>

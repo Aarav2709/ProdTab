@@ -2,7 +2,7 @@
     "manifest_version": 4,
     "name": "ProdTab",
     "version": "3.0.0",
-    "description": "ProdTab is a minimal and responsive browser startpage.",
+    "description": "ProdTab is a customizable browser startpage with onboarding, dynamic city weather, editable bookmarks, and light/dark themes, inspired by snes19xx.",
     "chrome_url_overrides": {
         "newtab": "index.html"
     },
