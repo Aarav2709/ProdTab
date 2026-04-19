@@ -1,1182 +1,454 @@
-/**********************/
-/* DYNAMIC BACKGROUND */
-/**********************/
-const STORAGE_KEY = "dynamicbackground";
-const UPDATE_INTERVAL = 60000;
+// file 3 of 3 (minimal)
+// TEST CONFIGURATION
+const TEST_CONFIG = {
+  forceTheme: false, // "dark", "light", or false
+  forceWeather: false, // 0 (clear), 61 (rain), 71 (snow), 95 (storm), or false
+  forceFestival: false, // "xmas", "halloween", "canada", "newyear", "fireworks", or false
+};
 
-function getDynamicBackgroundState() {
-  const state = localStorage.getItem(STORAGE_KEY);
-  if (state === null) {
-    localStorage.setItem(STORAGE_KEY, "true");
-    return true;
+window.activeGreeting = null;
+
+function applyTheme(isDay) {
+  if (TEST_CONFIG.forceTheme) {
+    if (TEST_CONFIG.forceTheme === "dark")
+      document.documentElement.classList.add("dark-theme");
+    else document.documentElement.classList.remove("dark-theme");
+    return;
   }
-  return state === "true";
+
+  const hr = new Date().getHours();
+  if (isDay && hr >= 6 && hr < 18) {
+    document.documentElement.classList.remove("dark-theme");
+  } else {
+    document.documentElement.classList.add("dark-theme");
+  }
 }
 
-function hexToRgb(hex) {
-  return [
-    parseInt(hex.slice(1, 3), 16),
-    parseInt(hex.slice(3, 5), 16),
-    parseInt(hex.slice(5, 7), 16),
-  ];
-}
+applyTheme(true);
 
-function rgbToHex(r, g, b) {
-  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
-}
-
-function interpolateColor(color1, color2, factor) {
-  const rgb1 = hexToRgb(color1);
-  const rgb2 = hexToRgb(color2);
-  const interpolated = rgb1.map((c, i) =>
-    Math.round(c + (rgb2[i] - c) * factor),
-  );
-  return rgbToHex(...interpolated);
-}
-
-function getBackgroundColors() {
-  const colors = [
-    { hour: 0, color: "#1c304b" }, // midnight
-    { hour: 3, color: "#41405d" }, // earlyMorning
-    { hour: 6, color: "#f3ae5d" }, // dawn
-    { hour: 9, color: "#74c3e1" }, // morning
-    { hour: 12, color: "#57b0d9" }, // noon
-    { hour: 15, color: "#6d9cc3" }, // afternoon
-    { hour: 18, color: "#e48959" }, // evening
-    { hour: 21, color: "#314867" }, // night
-    { hour: 24, color: "#1c304b" }, // back to midnight
-  ];
-
+// ----------------------------------------
+// CLOCK & GREETING
+function updateClock() {
   const now = new Date();
-  const currentHour = now.getHours() + now.getMinutes() / 60;
+  const hours = now.getHours();
+  const minutes = now.getMinutes().toString().padStart(2, "0");
 
-  let i = 0;
-  while (i < colors.length - 1 && currentHour >= colors[i + 1].hour) {
-    i++;
-  }
+  document.getElementById("clock").textContent = `${hours}:${minutes}`;
 
-  const start = colors[i];
-  const end = colors[i + 1];
-  const factor = (currentHour - start.hour) / (end.hour - start.hour || 1);
+  const greetingEl = document.getElementById("greeting");
 
-  return { startColor: start.color, endColor: end.color, factor };
-}
-
-function updateBackgroundColor() {
-  // Always use a fixed grey background
-  document.body.style.backgroundColor = "#18191a";
-}
-
-function initializeDynamicBackground() {
-  updateBackgroundColor();
-}
-
-/**********************/
-/*      CALENDAR      */
-/**********************/
-const initializeDateTimeAndCalendar = () => {
-  const currentDateElement = document.getElementById("current-date");
-  const currentTimeElement = document.getElementById("current-time");
-  const dayContainer = document.querySelector(".calendar-dates");
-  const currDateLabel = document.querySelector(".calendar-current-date");
-  const navIcons = document.querySelectorAll(".calendar-navigation span");
-
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-
-  let today = new Date();
-  let currentYear = today.getFullYear();
-  let currentMonth = today.getMonth();
-
-  const updateDateTime = () => {
-    const now = new Date();
-    const dayOfWeek = now.toLocaleDateString("en-EN", { weekday: "long" });
-    const date = now.getDate();
-    const month = now.toLocaleDateString("en-EN", { month: "long" });
-    const year = now.getFullYear();
-
-    let hours = now.getHours();
-    const minutes = now.getMinutes().toString().padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
-    hours = hours % 12 || 12;
-
-    currentDateElement.textContent = `${dayOfWeek}, ${date} ${month} ${year}`;
-
-    currentTimeElement.textContent = `${hours.toString().padStart(2, "0")}:${minutes} ${ampm}`;
-  };
-
-  const generateCalendar = () => {
-    const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay();
-    const firstDayOffset = (firstDayIndex + 6) % 7;
-    const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
-    const prevLastDate = new Date(currentYear, currentMonth, 0).getDate();
-    const endDayIndex = new Date(currentYear, currentMonth, lastDate).getDay();
-    const endOffset = (endDayIndex + 6) % 7;
-
-    const fragment = document.createDocumentFragment();
-    const appendDay = (dayNumber, className = null) => {
-      const listItem = document.createElement("li");
-      if (className) {
-        listItem.className = className;
-      }
-      listItem.textContent = String(dayNumber);
-      fragment.appendChild(listItem);
-    };
-
-    for (let i = firstDayOffset; i > 0; i--) {
-      appendDay(prevLastDate - i + 1, "inactive");
-    }
-
-    for (let i = 1; i <= lastDate; i++) {
-      const isToday =
-        i === today.getDate() &&
-        currentMonth === today.getMonth() &&
-        currentYear === today.getFullYear();
-      appendDay(i, isToday ? "active" : null);
-    }
-
-    for (let i = endOffset; i < 6; i++) {
-      appendDay(i - endOffset + 1, "inactive");
-    }
-
-    currDateLabel.innerText = `${months[currentMonth]} ${currentYear}`;
-    dayContainer.replaceChildren(fragment);
-  };
-
-  // Add calendar click handler for date format selection and copying
-  dayContainer.addEventListener("click", (e) => {
-    if (e.target.tagName === "LI" && !e.target.classList.contains("inactive")) {
-      const day = parseInt(e.target.textContent);
-      const date = new Date(currentYear, currentMonth, day);
-
-      // Store the selected date globally
-      window.selectedCalendarDate = date;
-
-      // Check if Shift key is pressed for date copying
-      if (e.shiftKey) {
-        // Show date format modal for copying
-        const dateModal = document.getElementById("date-modal");
-        const selectedDateDisplay = document.getElementById("selected-date");
-        selectedDateDisplay.textContent = `Selected: ${date.toLocaleDateString(
-          "en-US",
-          {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          },
-        )}`;
-        dateModal.classList.remove("hidden");
-      } else {
-        // Show reminder modal by default
-        const modal = document.getElementById("reminder-modal");
-        const reminderDateDisplay = document.getElementById("reminder-date");
-        reminderDateDisplay.textContent = `Reminder for: ${date.toLocaleDateString(
-          "en-US",
-          {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric",
-          },
-        )}`;
-        modal.classList.remove("hidden");
-      }
-    }
-  });
-
-  // Add visual indicator for dates with reminders
-  const updateCalendarReminders = () => {
-    const reminders = JSON.parse(
-      localStorage.getItem("calendar-reminders") || "[]",
-    );
-    const dates = dayContainer.querySelectorAll("li:not(.inactive)");
-
-    dates.forEach((dateEl) => {
-      const day = parseInt(dateEl.textContent);
-      const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-      const hasReminder = reminders.some((r) => r.date === dateStr);
-
-      if (hasReminder) {
-        dateEl.style.position = "relative";
-        if (!dateEl.querySelector(".reminder-dot")) {
-          const dot = document.createElement("span");
-          dot.className = "reminder-dot";
-          dot.style.cssText =
-            "position: absolute; top: 2px; right: 2px; width: 4px; height: 4px; background: #7c5dff; border-radius: 50%;";
-          dateEl.appendChild(dot);
-        }
-      }
-    });
-  };
-
-  navIcons.forEach((icon) => {
-    icon.addEventListener("click", () => {
-      currentMonth += icon.id === "calendar-prev" ? -1 : 1;
-
-      if (currentMonth < 0 || currentMonth > 11) {
-        const newDate = new Date(currentYear, currentMonth);
-        currentYear = newDate.getFullYear();
-        currentMonth = newDate.getMonth();
-      }
-
-      generateCalendar();
-      updateCalendarReminders();
-    });
-  });
-
-  updateDateTime();
-  generateCalendar();
-  updateCalendarReminders();
-  setInterval(updateDateTime, 1000);
-};
-
-/**********************/
-/*      TODOLIST      */
-/**********************/
-const TODO_STORAGE_KEY = "todolist-content";
-
-const initializeTodoList = () => {
-  const todolist = document.getElementById("todolist");
-  const newTodoInput = document.getElementById("new-todo");
-  const clearCompletedButton = document.getElementById("clear-completed");
-
-  if (!todolist || !newTodoInput || !clearCompletedButton) {
-    console.error("Missing todo list elements!");
+  if (window.activeGreeting) {
+    greetingEl.textContent = window.activeGreeting;
     return;
   }
 
-  const saveChecklist = () => {
-    const items = [...todolist.children].map((item) => ({
-      text: item.querySelector(".todo-text").textContent,
-      checked: item.querySelector("input[type='checkbox']").checked,
-    }));
-    localStorage.setItem(TODO_STORAGE_KEY, JSON.stringify(items));
-  };
+  const day = now.getDay();
 
-  const updateClearButtonVisibility = () => {
-    const hasChecked = [...todolist.children].some(
-      (item) =>
-        item.classList.contains("completed") &&
-        item.querySelector("input[type='checkbox']").checked,
-    );
-    clearCompletedButton.style.display = hasChecked ? "flex" : "none";
-  };
-
-  const updateMoveButtons = () => {
-    const items = [...todolist.querySelectorAll(".checklist-item")];
-    items.forEach((item, index) => {
-      const [upBtn, downBtn] = item.querySelectorAll(".move-buttons button");
-      upBtn.disabled = index === 0;
-      downBtn.disabled = index === items.length - 1;
-      [upBtn, downBtn].forEach((btn) => {
-        btn.classList.add("move-btn");
-        btn.style.opacity = btn.disabled ? "0.2" : "0.7";
-      });
-    });
-  };
-
-  const createEditableSpan = (text, li) => {
-    const span = document.createElement("span");
-    span.textContent = text;
-    span.className = "todo-text";
-
-    span.addEventListener("click", (event) => {
-      if (span.querySelector("input")) return;
-
-      if (event.altKey) {
-        const originalText = span.textContent;
-        const input = document.createElement("input");
-        Object.assign(input.style, {
-          backgroundColor: "transparent",
-          color: "white",
-          fontFamily: "var(--font-mono)",
-          fontSize: "16px",
-          width: "100%",
-          border: "none",
-          outline: "none",
-        });
-        input.type = "text";
-        input.value = originalText;
-
-        span.textContent = "";
-        span.appendChild(input);
-        input.focus();
-
-        const finalizeEdit = (cancel = false) => {
-          const newText = input.value.trim();
-          if (!cancel && newText) {
-            span.textContent = newText;
-          } else if (!cancel) {
-            li.remove();
-          } else {
-            span.textContent = originalText;
-          }
-          saveChecklist();
-          updateClearButtonVisibility();
-        };
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") finalizeEdit();
-          else if (e.key === "Escape") finalizeEdit(true);
-          else if (e.key === "Delete") {
-            li.remove();
-            saveChecklist();
-            updateClearButtonVisibility();
-          }
-        });
-        input.addEventListener("blur", () => finalizeEdit());
-      } else if (event.ctrlKey) {
-        li.remove();
-        saveChecklist();
-        updateClearButtonVisibility();
-        updateMoveButtons();
-      }
-    });
-
-    return span;
-  };
-
-  const addChecklistItem = (text, checked = false) => {
-    const li = document.createElement("li");
-    li.className = "checklist-item";
-    if (checked) li.classList.add("completed");
-
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = checked;
-    checkbox.addEventListener("change", () => {
-      li.classList.toggle("completed", checkbox.checked);
-      saveChecklist();
-      updateClearButtonVisibility();
-    });
-
-    const span = createEditableSpan(text, li);
-
-    const moveContainer = document.createElement("div");
-    moveContainer.className = "move-buttons";
-
-    const upBtn = document.createElement("button");
-    upBtn.textContent = "▲";
-    upBtn.className = "move-up";
-    upBtn.addEventListener("click", () => {
-      const prev = li.previousElementSibling;
-      if (prev) {
-        todolist.insertBefore(li, prev);
-        saveChecklist();
-        updateMoveButtons();
-      }
-    });
-
-    const downBtn = document.createElement("button");
-    downBtn.textContent = "▼";
-    downBtn.className = "move-down";
-    downBtn.addEventListener("click", () => {
-      const next = li.nextElementSibling;
-      if (next) {
-        todolist.insertBefore(next, li);
-        saveChecklist();
-        updateMoveButtons();
-      }
-    });
-
-    moveContainer.append(upBtn, downBtn);
-    li.append(checkbox, span, moveContainer);
-    todolist.appendChild(li);
-    updateMoveButtons();
-    updateClearButtonVisibility();
-  };
-
-  const loadChecklist = () => {
-    const savedChecklist =
-      JSON.parse(localStorage.getItem(TODO_STORAGE_KEY)) || [];
-    todolist.innerHTML = "";
-    savedChecklist.forEach(({ text, checked }) =>
-      addChecklistItem(text, checked),
-    );
-  };
-
-  newTodoInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const text = newTodoInput.value.trim();
-
-      if (text) {
-        addChecklistItem(text);
-        newTodoInput.value = "";
-        saveChecklist();
-      }
-    }
-  });
-
-  clearCompletedButton.addEventListener("click", () => {
-    [...todolist.children]
-      .filter((item) => item.querySelector("input[type='checkbox']").checked)
-      .forEach((item) => item.remove());
-    saveChecklist();
-    updateClearButtonVisibility();
-  });
-
-  window.addEventListener("storage", (event) => {
-    if (event.key === TODO_STORAGE_KEY) {
-      const checklist = JSON.parse(event.newValue) || [];
-      todolist.innerHTML = "";
-      checklist.forEach(({ text, checked }) => addChecklistItem(text, checked));
-      updateClearButtonVisibility();
-    }
-  });
-
-  loadChecklist();
-  updateClearButtonVisibility();
-};
-
-/**********************/
-/*     BOOKMARKS      */
-/**********************/
-const LINKS_STORAGE_KEY = "links-content";
-const MAX_LINKS = 30;
-
-let iconsData = [];
-const svgCache = new Map();
-
-const linksContainer = document.getElementById("links-container");
-
-const loadIconsData = async () => {
-  if (iconsData.length === 0) {
-    const response = await fetch("assets/icons/icons.json");
-    iconsData = await response.json();
-  }
-};
-
-const fetchSvgOrDefault = async (name) => {
-  await loadIconsData();
-
-  const match = iconsData.find(
-    (item) =>
-      item.slug.toLowerCase() === name.toLowerCase() ||
-      item.title.toLowerCase() === name.toLowerCase(),
-  );
-  const slugToUse = match ? match.slug : name;
-
-  if (svgCache.has(slugToUse)) {
-    return svgCache.get(slugToUse);
-  }
-
-  try {
-    const svgResponse = await fetch(`assets/icons/icons/${slugToUse}.svg`);
-    if (!svgResponse.ok) throw new Error("SVG not found");
-
-    const svgText = await svgResponse.text();
-    svgCache.set(slugToUse, svgText);
-    return svgText;
-  } catch {
-    const defaultText = await fetch("assets/icons/default.svg").then((res) =>
-      res.text(),
-    );
-    svgCache.set(slugToUse, defaultText);
-    return defaultText;
-  }
-};
-
-// --- Add Bookmark Button Logic ---
-document.getElementById("add-bookmark").addEventListener("click", () => {
-  // Open modal to add bookmark
-  const modal = document.getElementById("bookmark-modal");
-  const modalName = document.getElementById("modal-name");
-  const modalUrl = document.getElementById("modal-url");
-  modalName.value = "";
-  modalUrl.value = "";
-  modal.classList.remove("hidden");
-  modalName.focus();
-  // prevent background scroll while modal open
-  document.body.style.overflow = "hidden";
-});
-
-// Modal actions
-document.getElementById("modal-cancel").addEventListener("click", () => {
-  document.getElementById("bookmark-modal").classList.add("hidden");
-  document.body.style.overflow = "";
-});
-document.getElementById("modal-save").addEventListener("click", () => {
-  const name = document.getElementById("modal-name").value.trim();
-  const url = document.getElementById("modal-url").value.trim();
-  if (!name || !url) return;
-
-  // Create button and persist
-  const button = document.createElement("button");
-  button.className = "link-button";
-  button.textContent = name.toLowerCase();
-  button.dataset.text2 = url;
-
-  // append to DOM, save and re-render
-  // ensure url has http(s)
-  let normalizedUrl = url;
-  if (!/^https?:\/\//i.test(normalizedUrl)) {
-    normalizedUrl = "https://" + normalizedUrl;
-  }
-
-  const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || "[]");
-  links.push({ text1: button.textContent.toLowerCase(), text2: normalizedUrl });
-  localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
-  document.getElementById("bookmark-modal").classList.add("hidden");
-  document.body.style.overflow = "";
-  initializeGrid();
-});
-
-// Close modal when clicking outside the modal-content
-document.getElementById("bookmark-modal").addEventListener("click", (e) => {
-  const content = document.querySelector(".modal-content");
-  if (!content) return;
-  if (!content.contains(e.target)) {
-    document.getElementById("bookmark-modal").classList.add("hidden");
-    document.body.style.overflow = "";
-  }
-});
-
-// Close modal with Escape key
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    const modal = document.getElementById("bookmark-modal");
-    if (modal && !modal.classList.contains("hidden")) {
-      modal.classList.add("hidden");
-      document.body.style.overflow = "";
-    }
-  }
-});
-
-const handleButtonClick = (event, button) => {
-  event.stopPropagation();
-  const link = button.dataset.text2;
-  if (button.classList.contains("editing")) return;
-
-  // If bookmark has a link and user holds Ctrl/Cmd, show removal confirmation
-  if (link && (event.ctrlKey || event.metaKey)) {
-    const name = (button.textContent || "").trim();
-    if (confirm(`Remove bookmark "${name}"?`)) {
-      // Remove from storage
-      const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || "[]");
-      const filtered = links.filter(
-        (l) => !(l.text2 === link && l.text1 === name),
-      );
-      localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
-      initializeGrid();
-    }
-    return;
-  }
-
-  // Normal click - open link
-  if (link) {
-    window.location.href = link;
-  }
-};
-
-const addButtonToGrid = (pair, index, fragment = null) => {
-  const button = document.createElement("button");
-  button.className = "link-button";
-  button.dataset.text2 = pair.text2 || "";
-  button.dataset.index = index;
-
-  if (pair.text1) {
-    const textSpan = document.createElement("span");
-    textSpan.textContent = pair.text1;
-    textSpan.className = "button-text";
-
-    fetchSvgOrDefault(pair.text1)
-      .then((svgContent) => {
-        const parser = new DOMParser();
-        const svgElement = parser.parseFromString(
-          svgContent,
-          "image/svg+xml",
-        ).documentElement;
-
-        const titleElement = svgElement.querySelector("title");
-        if (titleElement) titleElement.remove();
-
-        const match = iconsData.find(
-          (item) =>
-            item.slug.toLowerCase() === pair.text1.toLowerCase() ||
-            item.title.toLowerCase() === pair.text1.toLowerCase(),
-        );
-        if (match) svgElement.setAttribute("fill", `#${match.hex}`);
-
-        svgElement.classList.add("icon");
-
-        button.appendChild(svgElement);
-        button.appendChild(textSpan);
-
-        [textSpan, svgElement].forEach((el) => {
-          el.addEventListener("click", (e) => handleButtonClick(e, button));
-          el.addEventListener("auxclick", (e) => handleButtonClick(e, button));
-        });
-      })
-      .catch((error) => console.error("Error handling SVG:", error));
+  if (day === 5 && hours >= 16) {
+    greetingEl.textContent = "Happy Friday, snes.";
+  } else if (hours < 12) {
+    greetingEl.textContent = "Good morning, snes.";
+  } else if (hours < 18) {
+    greetingEl.textContent = "Good afternoon, snes.";
   } else {
-    // Empty tile - add placeholder content to maintain size
-    const placeholderDiv = document.createElement("div");
-    placeholderDiv.style.height = "50px"; // Same as icon height
-    placeholderDiv.style.width = "100%";
-    button.appendChild(placeholderDiv);
+    greetingEl.textContent = "Good evening, snes.";
   }
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-  // wrapper tile to position delete button
-  const tile = document.createElement("div");
-  tile.className = "link-tile";
-  tile.appendChild(button);
-
-  // delete button
-  const del = document.createElement("button");
-  del.className = "delete-btn";
-  del.title = "Delete";
-  del.innerHTML = "✕";
-  del.addEventListener("click", (e) => {
-    e.stopPropagation();
-    // remove this link from storage by matching index or url
-    const links = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY) || "[]");
-    const url = button.dataset.text2 || "";
-    const name = (button.textContent || "").trim();
-    const filtered = links.filter(
-      (l) => !(l.text2 === url && l.text1 === name),
-    );
-    localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(filtered));
-    initializeGrid();
-  });
-
-  tile.appendChild(del);
-
-  // clicking the button opens the link
-  button.addEventListener("click", (event) => {
-    handleButtonClick(event, button);
-  });
-  button.addEventListener("auxclick", (event) => {
-    handleButtonClick(event, button);
-  });
-
-  (fragment || linksContainer).appendChild(tile);
-};
-
-const saveLinks = () => {
-  const buttons = Array.from(linksContainer.querySelectorAll(".link-button"));
-  const links = buttons
-    .map((btn) => {
-      const text1 = btn.textContent.trim();
-      const text2 = btn.dataset.text2 || "";
-
-      if (text1 && text2) {
-        return { text1, text2 };
-      }
-      return null;
-    })
-    .filter((link) => link !== null);
-
-  links.sort((a, b) => a.text1.localeCompare(b.text1));
-
-  if (links.length > 0) {
-    localStorage.setItem(LINKS_STORAGE_KEY, JSON.stringify(links));
-  } else {
-    localStorage.removeItem(LINKS_STORAGE_KEY);
-  }
-};
-
-const initializeGrid = () => {
-  const savedLinks = JSON.parse(localStorage.getItem(LINKS_STORAGE_KEY)) || [];
-  savedLinks.sort((a, b) => a.text1.localeCompare(b.text1));
-
-  const columns = 3;
-  const totalLinks = savedLinks.length;
-  const totalRows = Math.ceil(totalLinks / columns);
-  const isLastRowComplete = totalLinks % columns === 0;
-  const rowsToShow = isLastRowComplete ? totalRows + 1 : totalRows;
-
-  linksContainer.innerHTML = "";
-  const fragment = document.createDocumentFragment();
-
-  for (let i = 0; i < rowsToShow * columns; i++) {
-    addButtonToGrid(savedLinks[i] || { text1: "", text2: "" }, i, fragment);
-  }
-
-  linksContainer.appendChild(fragment);
-};
-
-const editButton = (button) => {
-  const currentText = button.textContent;
-  const currentText1 = currentText.trim();
-  const currentText2 = button.dataset.text2 || "";
-
-  const container = document.createElement("div");
-  container.className = "link-edit-container";
-
-  const input1 = document.createElement("input");
-  input1.type = "text";
-  input1.value = currentText1 || "";
-  input1.className = "button-edit-input";
-  input1.placeholder = "name";
-
-  const input2 = document.createElement("input");
-  input2.type = "text";
-  input2.value = currentText2 || "";
-  input2.className = "button-edit-input";
-  input2.placeholder = "link";
-
-  container.appendChild(input1);
-  container.appendChild(input2);
-  button.replaceWith(container);
-  input1.focus();
-
-  const saveInput = (status) => {
-    const newText1 = status === 0 ? input1.value.trim().toLowerCase() : "";
-    const newText2 = status === 0 ? input2.value.trim() : "";
-
-    if (newText1 === currentText1 && newText2 === currentText2) {
-      container.replaceWith(button);
-      return;
-    }
-
-    if (
-      currentText1 === "" &&
-      currentText2 === "" &&
-      (input1.value.trim().toLowerCase() === "" || input2.value.trim() === "")
-    ) {
-      container.replaceWith(button);
-      return;
-    }
-
-    if (newText1 === "" || newText2 === "") {
-      button.textContent = "";
-      button.dataset.text2 = "";
-    } else {
-      button.textContent = newText1;
-      button.dataset.text2 = newText2;
-    }
-
-    container.replaceWith(button);
-    saveLinks();
-    initializeGrid();
-  };
-
-  const cancelEdit = () => {
-    container.replaceWith(button);
-  };
-
-  const handleBlur = () => {
-    setTimeout(() => {
-      if (!container.contains(document.activeElement)) {
-        saveInput(0);
-      }
-    }, 0);
-  };
-
-  [input1, input2].forEach((input) => {
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        saveInput(0);
-      } else if (event.key === "Delete") {
-        saveInput(1);
-      } else if (event.key === "Escape") {
-        cancelEdit();
-      }
-    });
-    input.addEventListener("blur", handleBlur);
-  });
-};
-
-window.addEventListener("storage", (event) => {
-  if (event.key === LINKS_STORAGE_KEY) {
-    const links = JSON.parse(event.newValue);
-    linksContainer.innerHTML = "";
-    const fragment = document.createDocumentFragment();
-    links.forEach((pair, index) => addButtonToGrid(pair, index, fragment));
-    linksContainer.appendChild(fragment);
+// ----------------------------------------
+// SEARCH & SHORTCUTS
+const searchInput = document.getElementById("search");
+searchInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && searchInput.value.trim()) {
+    window.location.href = `https://www.google.com/search?q=${encodeURIComponent(searchInput.value.trim())}`;
   }
 });
 
-/**********************/
-/*     CLIPBOARD      */
-/**********************/
-const initializeClipboard = () => {
-  const container = document.querySelectorAll("#clipboard-container textarea");
+const SHORTCUTS = [
+  {
+    label: "Quercus",
+    href: "https://q.utoronto.ca/",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M5 9v6c0 3 7 3 7 3s7 0 7-3V9"/><path d="M19 10v4"/><circle cx="19" cy="15" r="1"/></svg>`,
+  },
+  {
+    label: "Acorn",
+    href: "https://acorn.utoronto.ca/",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2.5 0-4.5 1.5-5.5 3.5S4 10 4 12c0 3 2.5 5 5 5h6c2.5 0 5-2 5-5 0-2-1.5-4.5-2.5-6.5S14.5 2 12 2z"/><path d="M12 17v5"/><path d="M9 22h6"/></svg>`,
+  },
+  {
+    label: "YouTube",
+    href: "https://youtube.com",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2C5.12 19.5 12 19.5 12 19.5s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg>`,
+  },
+  {
+    label: "Archwiki",
+    href: "https://wiki.archlinux.org/",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l3 3-3 3M13 17h4"/><rect x="3" y="4" width="18" height="16" rx="2" ry="2"/></svg>`,
+  },
+  {
+    label: "Outlook",
+    href: "https://outlook.office.com",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2" ry="2"/><path d="M3 7l9 6 9-6"/></svg>`,
+  },
+];
 
-  const saveClipboardData = () => {
-    container.forEach((textarea) =>
-      localStorage.setItem(textarea.id, textarea.value),
-    );
-  };
-
-  const loadClipboardData = () => {
-    container.forEach((textarea) => {
-      const saved = localStorage.getItem(textarea.id);
-      if (saved !== null) {
-        textarea.value = saved;
-        updateTextareaStyle(textarea);
-      }
-    });
-  };
-
-  const updateTextareaStyle = (textarea) => {
-    const hasContent = textarea.value.trim() !== "";
-    textarea.style.borderBottom = hasContent
-      ? "rgba(0, 0, 0, 0.1) 5px solid"
-      : "none";
-    textarea.style.backgroundColor = hasContent
-      ? "rgba(0, 0, 0, 0.07)"
-      : "transparent";
-  };
-
-  container.forEach((textarea) => {
-    textarea.addEventListener("input", () => {
-      saveClipboardData();
-      updateTextareaStyle(textarea);
-    });
-
-    textarea.addEventListener("click", (event) => {
-      if (event.altKey) {
-        navigator.clipboard.writeText(textarea.value);
-      } else if (event.ctrlKey) {
-        textarea.value = "";
-        updateTextareaStyle(textarea);
-        saveClipboardData();
-      }
-    });
-  });
-
-  window.addEventListener("load", loadClipboardData);
-
-  window.addEventListener("storage", (event) => {
-    if (event.key?.startsWith("clipboard-")) {
-      const textarea = document.getElementById(event.key);
-      if (textarea) {
-        textarea.value = event.newValue || "";
-        updateTextareaStyle(textarea);
-      }
-    }
-  });
-};
-
-/**********************/
-/*       NOTEPAD      */
-/**********************/
-const NOTEPAD_STORAGE_KEY = "notepad-content";
-
-const notepad = document.getElementById("notepad");
-const notepadLines = document.getElementById("notepad-lines");
-
-const updateLinesHeight = () => {
-  notepadLines.style.height = `${notepad.scrollHeight}px`;
-};
-
-const initializeNotepad = () => {
-  const loadContent = () => {
-    const saved = localStorage.getItem(NOTEPAD_STORAGE_KEY);
-    if (saved) notepad.value = saved;
-    updateLinesHeight();
-  };
-
-  const saveContent = () => {
-    localStorage.setItem(NOTEPAD_STORAGE_KEY, notepad.value);
-  };
-
-  notepad.addEventListener("input", () => {
-    saveContent();
-    updateLinesHeight();
-  });
-
-  notepad.addEventListener("scroll", () => {
-    notepadLines.style.transform = `translateY(-${notepad.scrollTop}px)`;
-  });
-
-  window.addEventListener("resize", updateLinesHeight);
-
-  window.addEventListener("storage", (event) => {
-    if (event.key === NOTEPAD_STORAGE_KEY) {
-      notepad.value = event.newValue || "";
-      updateLinesHeight();
-    }
-  });
-
-  loadContent();
-};
-
-// Individual clipboard copy/paste buttons
-document.querySelectorAll(".clipboard-copy").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    try {
-      const clipboardId = btn.dataset.clipboard;
-      const textarea = document.getElementById(clipboardId);
-      if (textarea && textarea.value) {
-        await navigator.clipboard.writeText(textarea.value);
-        // Visual feedback
-        btn.textContent = "Copied!";
-        setTimeout(() => (btn.textContent = "Copy"), 1000);
-      }
-    } catch (err) {
-      console.error("Copy failed", err);
-      btn.textContent = "Error";
-      setTimeout(() => (btn.textContent = "Copy"), 1000);
-    }
-  });
-});
-
-document.querySelectorAll(".clipboard-paste").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    try {
-      const paste = await navigator.clipboard.readText();
-      const clipboardId = btn.dataset.clipboard;
-      const textarea = document.getElementById(clipboardId);
-      if (textarea) {
-        textarea.value = paste;
-        textarea.dispatchEvent(new Event("input"));
-        // Visual feedback
-        btn.textContent = "Pasted!";
-        setTimeout(() => (btn.textContent = "Paste"), 1000);
-      }
-    } catch (err) {
-      console.error("Paste failed", err);
-      btn.textContent = "Error";
-      setTimeout(() => (btn.textContent = "Paste"), 1000);
-    }
-  });
-});
-
-/**********************/
-/*       BACKUP       */
-/**********************/
-const downloadLocalStorage = () => {
-  const data = JSON.stringify(localStorage);
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-
+const linksContainer = document.getElementById("links");
+SHORTCUTS.forEach(({ label, href, icon }) => {
   const a = document.createElement("a");
-  a.href = url;
-  a.download = "prodtab.config.json";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
+  a.className = "shortcut";
+  a.href = href;
+  a.innerHTML = `${icon}<span>${label}</span>`;
+  linksContainer.appendChild(a);
+});
 
-const uploadLocalStorage = () => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "application/json";
-  input.style.display = "none";
+// ----------------------------------------
+// EFFECTS
+const fxContainer = document.getElementById("dynamic-effects");
 
-  input.addEventListener("change", (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (typeof data === "object" && data !== null) {
-          Object.entries(data).forEach(([key, value]) =>
-            localStorage.setItem(key, value),
-          );
-          location.reload();
-          console.log("LocalStorage caricato con successo!");
-        } else {
-          console.warn("Il file non è valido.");
-        }
-      } catch (err) {
-        console.error("Errore durante il caricamento del file.");
-      }
-    };
-    reader.readAsText(file);
-  });
-
-  document.body.appendChild(input);
-  input.click();
-  document.body.removeChild(input);
-};
-
-const initializeBackup = () => {
-  document
-    .getElementById("calendar-card")
-    .addEventListener("click", (event) => {
-      if (event.altKey) {
-        uploadLocalStorage();
-      } else if (event.ctrlKey) {
-        downloadLocalStorage();
-      }
-    });
-};
-
-/**********************/
-/*        INIT        */
-/**********************/
-function initializeLocalStorage() {
-  const defaults = {
-    dynamicbackground: "true",
-    "clipboard-1": "",
-    "clipboard-2": "",
-    "clipboard-3": "",
-    "clipboard-4": "",
-    "clipboard-5": "",
-    "notepad-content": "",
-    "links-content": "[]",
-    "todolist-content": "[]",
-  };
-
-  Object.entries(defaults).forEach(([key, value]) => {
-    if (!localStorage.hasOwnProperty(key)) {
-      localStorage.setItem(key, value);
-    }
-  });
+function createParticles(className, count, styleFunc) {
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement("div");
+    el.className = className;
+    Object.assign(el.style, styleFunc(i));
+    fxContainer.appendChild(el);
+  }
 }
 
-/**********************/
-/*   DATE MODAL       */
-/**********************/
+function injectSpaceObjects() {
+  const saturn = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  saturn.setAttribute("class", "floating-obj");
+  saturn.setAttribute("viewBox", "0 0 100 100");
+  saturn.style.top = "15%";
+  saturn.style.right = "10%";
+  saturn.style.width = "100px";
+  saturn.innerHTML = `<circle cx="50" cy="50" r="20"/><ellipse cx="50" cy="50" rx="40" ry="10" transform="rotate(-20 50 50)"/>`;
+  fxContainer.appendChild(saturn);
 
-// Date format modal handlers
-document.addEventListener("click", (e) => {
-  // Close modal when clicking outside
-  if (e.target.id === "date-modal") {
-    document.getElementById("date-modal").classList.add("hidden");
+  const starBase = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "svg",
+  );
+  starBase.setAttribute("class", "floating-obj");
+  starBase.setAttribute("viewBox", "0 0 50 50");
+  starBase.style.bottom = "20%";
+  starBase.style.left = "15%";
+  starBase.style.width = "60px";
+  starBase.style.animationDelay = "-5s";
+  starBase.innerHTML = `<polygon points="25,5 30,20 45,20 32,30 37,45 25,35 13,45 18,30 5,20 20,20"/>`;
+  fxContainer.appendChild(starBase);
+}
+
+function injectXmasTree() {
+  const tree = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  tree.setAttribute("class", "xmas-tree");
+  tree.setAttribute("viewBox", "0 0 100 120");
+  tree.innerHTML = `
+    <polygon points="50,15 20,55 40,55 10,95 90,95 60,55 80,55" fill="var(--accent)" />
+    <rect x="40" y="95" width="20" height="25" fill="var(--text-muted)" />
+    <polygon style="transform-origin: 50px 15px; transform: scale(0.6);" points="50,0 54,10 65,10 56,16 60,26 50,20 40,26 44,16 35,10 46,10" fill="var(--text-main)" />
+  `;
+  fxContainer.appendChild(tree);
+}
+
+function injectHalloween() {
+  const glow = document.createElement("div");
+  glow.className = "halloween-glow";
+  fxContainer.appendChild(glow);
+
+  for (let i = 0; i < 3; i++) {
+    const bat = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    bat.setAttribute("class", "bat");
+    bat.setAttribute("viewBox", "0 0 100 50");
+    bat.style.animationDelay = `${i * 3}s`;
+    bat.style.top = `${Math.random() * 40}vh`;
+    bat.innerHTML = `<path d="M50,20 Q40,0 10,10 Q20,30 50,40 Q80,30 90,10 Q60,0 50,20 Z" />`;
+    fxContainer.appendChild(bat);
+  }
+}
+
+// --- FIREWORKS ---
+let autoFireworkTimeout;
+function startFireworks(customColors) {
+  window.human = false;
+  const canvasEl = document.getElementById("fireworks-canvas");
+  const ctx = canvasEl.getContext("2d");
+  const numberOfParticules = 30;
+  let pointerX = 0;
+  let pointerY = 0;
+
+  function setCanvasSize() {
+    canvasEl.width = window.innerWidth * 2;
+    canvasEl.height = window.innerHeight * 2;
+    canvasEl.style.width = window.innerWidth + "px";
+    canvasEl.style.height = window.innerHeight + "px";
+    ctx.scale(2, 2);
   }
 
-  // Handle date format button clicks
-  if (e.target.classList.contains("date-format-btn")) {
-    const format = e.target.dataset.format;
-    const date = window.selectedCalendarDate;
+  function getColors() {
+    if (customColors) return customColors;
+    const style = getComputedStyle(document.body);
+    return [
+      style.getPropertyValue("--accent").trim(),
+      style.getPropertyValue("--text-main").trim(),
+      style.getPropertyValue("--text-muted").trim(),
+    ];
+  }
 
-    if (date) {
-      let formattedDate;
+  function setParticuleDirection(p) {
+    const angle = (anime.random(0, 360) * Math.PI) / 180;
+    const value = anime.random(50, 150);
+    const radius = [-1, 1][anime.random(0, 1)] * value;
+    return {
+      x: p.x + radius * Math.cos(angle),
+      y: p.y + radius * Math.sin(angle),
+    };
+  }
 
-      switch (format) {
-        case "MM/DD/YYYY":
-          formattedDate = date.toLocaleDateString("en-US");
-          break;
-        case "DD/MM/YYYY":
-          formattedDate = date.toLocaleDateString("en-GB");
-          break;
-        case "YYYY-MM-DD":
-          formattedDate = date.toISOString().split("T")[0];
-          break;
-        case "Mon DD, YYYY":
-          formattedDate = date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          });
-          break;
-        default:
-          formattedDate = date.toLocaleDateString("en-US");
-      }
+  function createParticule(x, y) {
+    const p = {};
+    p.x = x;
+    p.y = y;
+    const colors = getColors();
+    p.color = colors[anime.random(0, colors.length - 1)];
+    p.radius = anime.random(8, 24);
+    p.endPos = setParticuleDirection(p);
+    p.draw = function () {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI, true);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+    };
+    return p;
+  }
 
-      // Copy to clipboard
-      navigator.clipboard
-        .writeText(formattedDate)
-        .then(() => {
-          // Visual feedback
-          e.target.textContent = "Copied!";
-          setTimeout(() => {
-            e.target.textContent = format;
-          }, 1000);
-        })
-        .catch(console.error);
-
-      // Close modal after short delay
-      setTimeout(() => {
-        document.getElementById("date-modal").classList.add("hidden");
-      }, 1200);
+  function renderParticule(anim) {
+    for (let i = 0; i < anim.animatables.length; i++) {
+      anim.animatables[i].target.draw();
     }
   }
-});
 
-// Date modal cancel button
-document.addEventListener("DOMContentLoaded", () => {
-  document
-    .getElementById("date-modal-cancel")
-    ?.addEventListener("click", () => {
-      document.getElementById("date-modal").classList.add("hidden");
+  function animateParticules(x, y) {
+    const particules = [];
+    for (let i = 0; i < numberOfParticules; i++) {
+      particules.push(createParticule(x, y));
+    }
+    anime.timeline().add({
+      targets: particules,
+      x: function (p) {
+        return p.endPos.x;
+      },
+      y: function (p) {
+        return p.endPos.y;
+      },
+      radius: 0.1,
+      duration: anime.random(1200, 1800),
+      easing: "easeOutExpo",
+      update: renderParticule,
     });
+  }
 
-  // Reminder modal handlers
-  const reminderModal = document.getElementById("reminder-modal");
-  const reminderText = document.getElementById("reminder-text");
-  const reminderHour = document.getElementById("reminder-hour");
-  const reminderMinute = document.getElementById("reminder-minute");
-
-  document.getElementById("reminder-cancel")?.addEventListener("click", () => {
-    reminderModal.classList.add("hidden");
-    reminderText.value = "";
-    reminderHour.value = "09";
-    reminderMinute.value = "00";
+  const render = anime({
+    duration: Infinity,
+    update: function () {
+      ctx.clearRect(0, 0, canvasEl.width / 2, canvasEl.height / 2);
+    },
   });
 
-  document.getElementById("reminder-save")?.addEventListener("click", () => {
-    const text = reminderText.value.trim();
-    const hour = String(reminderHour.value).padStart(2, "0");
-    const minute = String(reminderMinute.value).padStart(2, "0");
-    const time = `${hour}:${minute}`;
+  document.addEventListener(
+    "mousedown",
+    function (e) {
+      if (e.target.tagName === "INPUT" || e.target.closest("a")) return;
+      window.human = true;
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+      animateParticules(pointerX, pointerY);
+    },
+    false,
+  );
 
-    if (!text) {
-      alert("Please enter reminder text");
-      return;
-    }
-
-    const date = window.selectedCalendarDate;
-    if (!date) return;
-
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-    const reminders = JSON.parse(
-      localStorage.getItem("calendar-reminders") || "[]",
+  function autoClick() {
+    if (window.human) return;
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    animateParticules(
+      anime.random(centerX - 150, centerX + 150),
+      anime.random(centerY - 150, centerY + 150),
     );
-    reminders.push({
-      date: dateStr,
-      text: text,
-      time: time,
-      created: new Date().toISOString(),
-    });
-    localStorage.setItem("calendar-reminders", JSON.stringify(reminders));
+    autoFireworkTimeout = setTimeout(autoClick, anime.random(1000, 2500));
+  }
 
-    reminderModal.classList.add("hidden");
-    reminderText.value = "";
-    reminderHour.value = "09";
-    reminderMinute.value = "00";
+  setCanvasSize();
+  window.addEventListener("resize", setCanvasSize, false);
+  autoClick();
+}
 
-    // Refresh calendar to show reminder dot
-    if (typeof initializeDateTimeAndCalendar !== "undefined") {
-      const event = new CustomEvent("calendar-refresh");
-      document.dispatchEvent(event);
-    }
+function stopFireworks() {
+  clearTimeout(autoFireworkTimeout);
+  const canvasEl = document.getElementById("fireworks-canvas");
+  const ctx = canvasEl.getContext("2d");
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+}
 
-    alert(
-      `Reminder set for ${date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
+// --- MAIN EFFECT ---
+function triggerEffects(apiWeatherCode) {
+  fxContainer.innerHTML = "";
+  window.activeGreeting = null;
+  stopFireworks();
+
+  const date = new Date();
+  const month = date.getMonth();
+  const day = date.getDate();
+
+  const activeWeather =
+    TEST_CONFIG.forceWeather !== false
+      ? TEST_CONFIG.forceWeather
+      : apiWeatherCode;
+  const activeFestival =
+    TEST_CONFIG.forceFestival !== false ? TEST_CONFIG.forceFestival : null;
+
+  // Festivals
+  let isHoliday = false;
+
+  if (activeFestival === "xmas" || (!activeFestival && month === 11)) {
+    window.activeGreeting = "Merry Christmas, snes.";
+    createParticles("xmas-light", 25, (i) => ({
+      left: `${i * 4}%`,
+      animationDelay: `${Math.random() * 2}s`,
+    }));
+    injectXmasTree();
+    isHoliday = true;
+  }
+
+  if (activeFestival === "halloween" || (!activeFestival && month === 9)) {
+    window.activeGreeting = "Happy Halloween, snes.";
+    injectHalloween();
+    isHoliday = true;
+  }
+
+  if (
+    activeFestival === "canada" ||
+    (!activeFestival && month === 6 && day === 1)
+  ) {
+    window.activeGreeting = "Happy Canada Day, snes.";
+    startFireworks(["#FF0000", "#FFFFFF"]);
+    isHoliday = true;
+  }
+
+  if (
+    activeFestival === "newyear" ||
+    (!activeFestival && month === 0 && day === 1)
+  ) {
+    window.activeGreeting = "Happy New Year, snes.";
+    startFireworks([
+      "#ff0044",
+      "#00ff44",
+      "#4400ff",
+      "#ffea00",
+      "#00eaff",
+      "#ff00aa",
+    ]);
+    isHoliday = true;
+  }
+
+  if (activeFestival === "fireworks" && !isHoliday) {
+    startFireworks(null);
+    isHoliday = true;
+  }
+
+  updateClock();
+
+  // Weather
+  let hasWeatherFx = false;
+  if (activeWeather >= 51 && activeWeather <= 67) {
+    createParticles("rain-drop", 50, () => ({
+      left: `${Math.random() * 100}vw`,
+      animationDuration: `${Math.random() * 0.5 + 0.5}s`,
+      animationDelay: `${Math.random() * 2}s`,
+    }));
+    hasWeatherFx = true;
+  } else if (activeWeather >= 71 && activeWeather <= 86) {
+    createParticles("snow-flake", 80, () => ({
+      left: `${Math.random() * 100}vw`,
+      animationDuration: `${Math.random() * 3 + 4}s`,
+      animationDelay: `${Math.random() * 5}s`,
+    }));
+    hasWeatherFx = true;
+  } else if (activeWeather >= 1 && activeWeather <= 3) {
+    createParticles("cloud", 4, () => ({
+      top: `${Math.random() * 40}vh`,
+      width: `${Math.random() * 200 + 150}px`,
+      height: `${Math.random() * 40 + 40}px`,
+      animationDuration: `${Math.random() * 30 + 40}s`,
+      animationDelay: `-${Math.random() * 40}s`,
+    }));
+  } else if (activeWeather >= 95) {
+    createParticles("rain-drop", 80, () => ({
+      left: `${Math.random() * 100}vw`,
+      animationDuration: `${Math.random() * 0.4 + 0.4}s`,
+    }));
+    const thunder = document.createElement("div");
+    thunder.className = "thunder";
+    fxContainer.appendChild(thunder);
+    hasWeatherFx = true;
+  }
+
+  // Default Cosmology
+  if (!hasWeatherFx) {
+    createParticles("meteor", 4, () => ({
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 50}vh`,
+      animationDelay: `${Math.random() * 15}s`,
+    }));
+    createParticles("comet", 1, () => ({
+      left: `${Math.random() * 100}vw`,
+      top: `${Math.random() * 30}vh`,
+      animationDelay: `${Math.random() * 25}s`,
+    }));
+    injectSpaceObjects();
+  }
+}
+
+// ----------------------------------------
+// WEATHER API
+async function loadWeather() {
+  try {
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=43.654&longitude=-79.383&current=temperature_2m,weather_code,is_day&timezone=auto`,
     );
-  });
+    const data = await res.json();
 
-  // Close modals when clicking outside
-  reminderModal?.addEventListener("click", (e) => {
-    if (e.target === reminderModal) {
-      reminderModal.classList.add("hidden");
-      reminderText.value = "";
-      reminderHour.value = "09";
-      reminderMinute.value = "00";
+    const temp = Math.round(data.current.temperature_2m);
+    const code = data.current.weather_code;
+    const isDay = data.current.is_day === 1;
+
+    applyTheme(isDay);
+    triggerEffects(code);
+
+    document.getElementById("wx-temp").textContent = `${temp}°C`;
+
+    let svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+
+    if (!isDay && code === 0) {
+      svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+    } else if (code >= 1 && code <= 3) {
+      svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>`;
+    } else if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
+      svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/></svg>`;
+    } else if (code >= 71 && code <= 86) {
+      svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/><path d="m20 16-4-4 4-4"/><path d="m4 8 4 4-4 4"/><path d="m16 4-4 4-4-4"/><path d="m8 20 4-4 4 4"/></svg>`;
+    } else if (code >= 95) {
+      svgIcon = `<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`;
     }
-  });
-});
 
-document.addEventListener("DOMContentLoaded", () => {
-  initializeLocalStorage();
-  initializeDynamicBackground();
-  initializeDateTimeAndCalendar();
-  initializeTodoList();
-  initializeGrid();
-  initializeClipboard();
-  initializeNotepad();
-  initializeBackup();
-});
+    document.getElementById("wx-emoji").innerHTML = svgIcon;
+  } catch (e) {
+    document.getElementById("wx-temp").textContent = "N/A";
+    triggerEffects(
+      TEST_CONFIG.forceWeather !== false ? TEST_CONFIG.forceWeather : 0,
+    );
+  }
+}
+
+loadWeather();
