@@ -2,6 +2,8 @@
 
 ProdTab is a lightweight new tab / startpage extension built with plain HTML, CSS, and JavaScript.
 
+https://github.com/user-attachments/assets/73f0ba5b-c89c-405a-8453-f13f7d679eb3
+
 It focuses on a clean daily dashboard with:
 
 - Personalized onboarding (name + city)
