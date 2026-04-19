@@ -1,9 +1,3 @@
-const TEST_CONFIG = {
-  forceTheme: false, // "dark", "light", or false
-  forceWeather: false, // 0 (clear), 61 (rain), 71 (snow), 95 (storm), or false
-  forceFestival: false, // "xmas", "halloween", "canada", "newyear", "fireworks", or false
-};
-
 const STORAGE_KEYS = {
   profile: "prodtab.profile.v1",
   bookmarks: "prodtab.bookmarks.v1",
@@ -57,6 +51,7 @@ const searchInput = document.getElementById("search");
 const linksContainer = document.getElementById("links");
 const addBookmarkBtn = document.getElementById("add-bookmark-btn");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
+const settingsBtn = document.getElementById("settings-btn");
 
 const wxTempEl = document.getElementById("wx-temp");
 const wxCityEl = document.getElementById("wx-city");
@@ -74,6 +69,9 @@ const onboardingOverlay = document.getElementById("onboarding-overlay");
 const onboardingForm = document.getElementById("onboarding-form");
 const onboardingNameInput = document.getElementById("onboarding-name");
 const onboardingCityInput = document.getElementById("onboarding-city");
+const onboardingTitleEl = document.getElementById("onboarding-title");
+const onboardingDescriptionEl = document.getElementById("onboarding-description");
+const onboardingSubmitBtn = document.getElementById("onboarding-submit-btn");
 
 const fxContainer = document.getElementById("dynamic-effects");
 let editingBookmarkIndex = null;
@@ -87,8 +85,7 @@ let isUserIdle = false;
 let isPageHidden = document.hidden;
 let effectsPaused = false;
 let lastInteractionTs = Date.now();
-let currentWeatherCode =
-  TEST_CONFIG.forceWeather !== false ? TEST_CONFIG.forceWeather : 0;
+let currentWeatherCode = 0;
 let weatherFetchInFlight = null;
 
 function normalizeText(value) {
@@ -621,16 +618,6 @@ function updateThemeToggleLabel() {
 }
 
 function applyTheme(isDay) {
-  if (TEST_CONFIG.forceTheme) {
-    if (TEST_CONFIG.forceTheme === "dark") {
-      setThemeClass("dark");
-    } else {
-      setThemeClass("light");
-    }
-    updateThemeToggleLabel();
-    return;
-  }
-
   if (themePreference === "light" || themePreference === "dark") {
     setThemeClass(themePreference);
     updateThemeToggleLabel();
@@ -691,6 +678,12 @@ if (searchInput) {
 
 if (addBookmarkBtn) {
   addBookmarkBtn.addEventListener("click", addBookmark);
+}
+
+if (settingsBtn) {
+  settingsBtn.addEventListener("click", () => {
+    openOnboarding(true, "edit");
+  });
 }
 
 if (themeToggleBtn) {
@@ -1008,17 +1001,10 @@ function triggerEffects(apiWeatherCode) {
   const day = date.getDate();
   const userName = getUserName();
 
-  const activeWeather =
-    TEST_CONFIG.forceWeather !== false
-      ? TEST_CONFIG.forceWeather
-      : apiWeatherCode;
+  const activeWeather = apiWeatherCode;
   currentWeatherCode = activeWeather;
-  const activeFestival =
-    TEST_CONFIG.forceFestival !== false ? TEST_CONFIG.forceFestival : null;
 
-  let isHoliday = false;
-
-  if (activeFestival === "xmas" || (!activeFestival && month === 11)) {
+  if (month === 11) {
     window.activeGreeting = `Merry Christmas, ${userName}.`;
     if (!effectsPaused) {
       createParticles("xmas-light", 25, (i) => ({
@@ -1027,32 +1013,23 @@ function triggerEffects(apiWeatherCode) {
       }));
       injectXmasTree();
     }
-    isHoliday = true;
   }
 
-  if (activeFestival === "halloween" || (!activeFestival && month === 9)) {
+  if (month === 9) {
     window.activeGreeting = `Happy Halloween, ${userName}.`;
     if (!effectsPaused) {
       injectHalloween();
     }
-    isHoliday = true;
   }
 
-  if (
-    activeFestival === "canada" ||
-    (!activeFestival && month === 6 && day === 1)
-  ) {
+  if (month === 6 && day === 1) {
     window.activeGreeting = `Happy Canada Day, ${userName}.`;
     if (!effectsPaused) {
       startFireworks(["#FF0000", "#FFFFFF"]);
     }
-    isHoliday = true;
   }
 
-  if (
-    activeFestival === "newyear" ||
-    (!activeFestival && month === 0 && day === 1)
-  ) {
+  if (month === 0 && day === 1) {
     window.activeGreeting = `Happy New Year, ${userName}.`;
     if (!effectsPaused) {
       startFireworks([
@@ -1064,14 +1041,6 @@ function triggerEffects(apiWeatherCode) {
         "#ff00aa",
       ]);
     }
-    isHoliday = true;
-  }
-
-  if (activeFestival === "fireworks" && !isHoliday) {
-    if (!effectsPaused) {
-      startFireworks(null);
-    }
-    isHoliday = true;
   }
 
   updateClock();
@@ -1164,7 +1133,7 @@ async function loadWeather(options) {
   if (!city) {
     latestWeather = null;
     renderWeather();
-    triggerEffects(TEST_CONFIG.forceWeather !== false ? TEST_CONFIG.forceWeather : 0);
+    triggerEffects(0);
     return;
   }
 
@@ -1261,9 +1230,7 @@ async function loadWeather(options) {
           cityLabel: city,
         };
         renderWeather();
-        triggerEffects(
-          TEST_CONFIG.forceWeather !== false ? TEST_CONFIG.forceWeather : 0,
-        );
+        triggerEffects(0);
       }
     } finally {
       weatherFetchInFlight = null;
@@ -1285,7 +1252,28 @@ function refreshWeatherIfStale() {
   loadWeather({ forceRefresh: true });
 }
 
-function openOnboarding(prefillExisting) {
+function setOnboardingMode(mode) {
+  if (!onboardingTitleEl || !onboardingDescriptionEl || !onboardingSubmitBtn) {
+    return;
+  }
+
+  if (mode === "edit") {
+    onboardingTitleEl.textContent = "Profile Settings";
+    onboardingDescriptionEl.textContent =
+      "Update your name and city. Weather and greeting refresh right away.";
+    onboardingSubmitBtn.textContent = "Save Changes";
+    return;
+  }
+
+  onboardingTitleEl.textContent = "Welcome to ProdTab";
+  onboardingDescriptionEl.textContent =
+    "Set up your name and city once. You can change them any time.";
+  onboardingSubmitBtn.textContent = "Save";
+}
+
+function openOnboarding(prefillExisting, mode = prefillExisting ? "edit" : "setup") {
+  setOnboardingMode(mode);
+
   if (prefillExisting && userProfile) {
     onboardingNameInput.value = userProfile.name;
     onboardingCityInput.value = userProfile.city;
@@ -1351,7 +1339,7 @@ document.addEventListener("keydown", (event) => {
 
 setupActivityTracking();
 
-triggerEffects(TEST_CONFIG.forceWeather !== false ? TEST_CONFIG.forceWeather : 0);
+triggerEffects(0);
 
 if (userProfile) {
   closeOnboarding();
