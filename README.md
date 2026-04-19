@@ -81,4 +81,4 @@ Choose one of the following:
 
 ## License
 
-See `LICENSE`.
+ GPL-3.0 license, for more informations see `LICENSE`.
