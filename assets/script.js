@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
   profile: "prodtab.profile.v1",
   bookmarks: "prodtab.bookmarks.v1",
+  searchHistory: "prodtab.search.history.v1",
   theme: "prodtab.theme.v1",
   weatherCache: "prodtab.weather.cache.v1",
   weatherUnit: "prodtab.weather.unit.v1",
@@ -17,6 +18,12 @@ const BASE_FIREWORK_PARTICLES = LOW_POWER_DEVICE ? 10 : 14;
 const AUTO_FIREWORK_BURSTS = LOW_POWER_DEVICE ? 3 : 6;
 const IDLE_TIMEOUT_MS = 10000;
 const INTERACTION_THROTTLE_MS = 600;
+const SEARCH_HISTORY_LIMIT = 12;
+const SEARCH_SUGGESTION_LIMIT = 7;
+const SEARCH_SUGGESTION_DEBOUNCE_MS = 180;
+const SEARCH_SUGGESTION_JSONP_TIMEOUT_MS = 2500;
+const SEARCH_ENGINE_URL = "https://duckduckgo.com/?q=";
+const SEARCH_SUGGESTION_ENDPOINT = "https://duckduckgo.com/ac/?type=list&q=";
 
 const LEGACY_DEFAULT_BOOKMARKS = [
   { label: "Quercus", href: "https://q.utoronto.ca/" },
@@ -45,9 +52,11 @@ window.activeGreeting = null;
 
 let userProfile = loadProfile();
 let bookmarks = loadBookmarks();
+let searchHistory = loadSearchHistory();
 let autoFireworkTimeout;
 
 const searchInput = document.getElementById("search");
+const searchSuggestionsEl = document.getElementById("search-suggestions");
 const linksContainer = document.getElementById("links");
 const addBookmarkBtn = document.getElementById("add-bookmark-btn");
 const themeToggleBtn = document.getElementById("theme-toggle-btn");
@@ -87,6 +96,15 @@ let effectsPaused = false;
 let lastInteractionTs = Date.now();
 let currentWeatherCode = 0;
 let weatherFetchInFlight = null;
+let suggestionDebounceId = null;
+let suggestionAbortController = null;
+let suggestionRequestId = 0;
+let suggestionJsonpCleanup = null;
+const searchSuggestionCache = new Map();
+const suggestionState = {
+  items: [],
+  activeIndex: -1,
+};
 
 function normalizeText(value) {
   return String(value || "")
@@ -108,6 +126,38 @@ function safeStorageSet(key, value) {
   } catch {
     // Ignore persistence failures.
   }
+}
+
+function loadSearchHistory() {
+  const raw = safeStorageGet(STORAGE_KEYS.searchHistory);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map(normalizeText).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+function saveSearchHistory(history) {
+  safeStorageSet(STORAGE_KEYS.searchHistory, JSON.stringify(history));
+}
+
+function trackSearchHistory(query) {
+  const normalized = normalizeText(query);
+  if (!normalized) return;
+
+  const updated = [
+    normalized,
+    ...searchHistory.filter(
+      (item) => item.toLowerCase() !== normalized.toLowerCase(),
+    ),
+  ];
+
+  searchHistory = updated.slice(0, SEARCH_HISTORY_LIMIT);
+  saveSearchHistory(searchHistory);
 }
 
 function loadThemePreference() {
@@ -318,6 +368,47 @@ function normalizeUrl(urlValue) {
   } catch {
     return null;
   }
+}
+
+function isLikelyUrlInput(value) {
+  const raw = normalizeText(value);
+  if (!raw || /\s/.test(raw)) return false;
+  if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(raw)) return true;
+  if (/^(localhost|(\d{1,3}\.){3}\d{1,3})(:\d+)?(\/|$)/.test(raw)) {
+    return true;
+  }
+  return raw.includes(".");
+}
+
+function resolveSearchTarget(rawValue) {
+  const query = normalizeText(rawValue);
+  if (!query) return null;
+
+  if (isLikelyUrlInput(query)) {
+    const url = normalizeUrl(query);
+    if (url) {
+      return { type: "url", target: url, query };
+    }
+  }
+
+  return {
+    type: "search",
+    target: `${SEARCH_ENGINE_URL}${encodeURIComponent(query)}`,
+    query,
+  };
+}
+
+function handleSearchSubmit(rawValue) {
+  const resolved = resolveSearchTarget(rawValue);
+  if (!resolved) return;
+
+  hideSearchSuggestions();
+
+  if (resolved.type === "search") {
+    trackSearchHistory(resolved.query);
+  }
+
+  window.location.href = resolved.target;
 }
 
 function loadProfile() {
@@ -592,6 +683,371 @@ function renderBookmarks() {
   });
 }
 
+const SUGGESTION_TYPE_LABELS = {
+  url: "Open",
+  bookmark: "Bookmark",
+  history: "Recent",
+  search: "Search",
+};
+
+function buildLocalSuggestions(query) {
+  const normalized = normalizeText(query).toLowerCase();
+  if (!normalized) return [];
+
+  const suggestions = [];
+  const directUrl = isLikelyUrlInput(query) ? normalizeUrl(query) : null;
+  if (directUrl) {
+    suggestions.push({
+      type: "url",
+      label: directUrl,
+      value: directUrl,
+      url: directUrl,
+    });
+  }
+
+  bookmarks.forEach((bookmark) => {
+    const label = normalizeText(bookmark.label);
+    const href = normalizeText(bookmark.href);
+    if (!label || !href) return;
+    if (
+      label.toLowerCase().includes(normalized) ||
+      href.toLowerCase().includes(normalized)
+    ) {
+      suggestions.push({
+        type: "bookmark",
+        label,
+        value: label,
+        url: bookmark.href,
+      });
+    }
+  });
+
+  searchHistory.forEach((entry) => {
+    const label = normalizeText(entry);
+    if (!label) return;
+    if (label.toLowerCase().includes(normalized)) {
+      suggestions.push({ type: "history", label, value: label });
+    }
+  });
+
+  return suggestions;
+}
+
+function getSuggestionKey(item) {
+  const labelKey = normalizeText(item.label).toLowerCase();
+  if (item.type === "search" || item.type === "history") {
+    return labelKey;
+  }
+  const urlKey = item.url ? `|${item.url}` : "";
+  return `${item.type}:${labelKey}${urlKey}`;
+}
+
+function mergeSuggestions(primary, secondary) {
+  const merged = [];
+  const seen = new Set();
+
+  [...primary, ...secondary].forEach((item) => {
+    if (merged.length >= SEARCH_SUGGESTION_LIMIT) return;
+    const key = getSuggestionKey(item);
+    if (seen.has(key)) return;
+    seen.add(key);
+    merged.push(item);
+  });
+
+  return merged;
+}
+
+function renderSearchSuggestions(items) {
+  if (!searchSuggestionsEl || !searchInput) return;
+
+  if (!items.length) {
+    hideSearchSuggestions();
+    return;
+  }
+
+  searchSuggestionsEl.innerHTML = "";
+  suggestionState.items = items;
+  suggestionState.activeIndex = -1;
+
+  items.forEach((item, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "search-suggestion";
+    button.id = `search-suggestion-${index}`;
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", "false");
+    button.title = item.url || item.value || item.label;
+
+    const label = document.createElement("span");
+    label.className = "suggestion-label";
+    label.textContent = item.label;
+
+    const meta = document.createElement("span");
+    meta.className = "suggestion-meta";
+    meta.textContent = SUGGESTION_TYPE_LABELS[item.type] || "Search";
+
+    button.append(label, meta);
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      selectSuggestion(index);
+    });
+
+    searchSuggestionsEl.appendChild(button);
+  });
+
+  searchSuggestionsEl.classList.remove("hidden");
+  searchSuggestionsEl.setAttribute("aria-hidden", "false");
+  searchInput.setAttribute("aria-expanded", "true");
+}
+
+function hideSearchSuggestions() {
+  if (!searchSuggestionsEl || !searchInput) return;
+  searchSuggestionsEl.classList.add("hidden");
+  searchSuggestionsEl.setAttribute("aria-hidden", "true");
+  searchSuggestionsEl.innerHTML = "";
+  suggestionState.items = [];
+  suggestionState.activeIndex = -1;
+  searchInput.setAttribute("aria-expanded", "false");
+  searchInput.removeAttribute("aria-activedescendant");
+}
+
+function setActiveSuggestion(index) {
+  if (!searchSuggestionsEl || !searchInput) return;
+
+  const options = Array.from(
+    searchSuggestionsEl.querySelectorAll(".search-suggestion"),
+  );
+
+  suggestionState.activeIndex = index;
+  options.forEach((option, optionIndex) => {
+    const isActive = optionIndex === index;
+    option.classList.toggle("is-active", isActive);
+    option.setAttribute("aria-selected", isActive ? "true" : "false");
+  });
+
+  if (index >= 0 && options[index]) {
+    searchInput.setAttribute("aria-activedescendant", options[index].id);
+  } else {
+    searchInput.removeAttribute("aria-activedescendant");
+  }
+}
+
+function moveActiveSuggestion(delta) {
+  if (!suggestionState.items.length) return;
+  const count = suggestionState.items.length;
+  let nextIndex = suggestionState.activeIndex + delta;
+  if (nextIndex < 0) nextIndex = count - 1;
+  if (nextIndex >= count) nextIndex = 0;
+  setActiveSuggestion(nextIndex);
+}
+
+function selectSuggestion(index) {
+  const item = suggestionState.items[index];
+  if (!item) return;
+
+  if (item.type === "bookmark" || item.type === "url") {
+    hideSearchSuggestions();
+    window.location.href = item.url;
+    return;
+  }
+
+  searchInput.value = item.value;
+  handleSearchSubmit(item.value);
+}
+
+function buildSuggestionUrl(query, callbackName) {
+  const encoded = encodeURIComponent(query);
+  const baseUrl = `${SEARCH_SUGGESTION_ENDPOINT}${encoded}`;
+  if (!callbackName) return baseUrl;
+  return `${baseUrl}&callback=${encodeURIComponent(callbackName)}`;
+}
+
+function normalizeSuggestionPayload(data) {
+  const list = Array.isArray(data?.[1])
+    ? data[1]
+    : Array.isArray(data)
+      ? data
+      : [];
+
+  return list
+    .map((item) => {
+      if (typeof item === "string") return normalizeText(item);
+      return normalizeText(item?.phrase || item?.suggestion);
+    })
+    .filter(Boolean);
+}
+
+function clearPendingJsonp() {
+  if (suggestionJsonpCleanup) {
+    suggestionJsonpCleanup();
+    suggestionJsonpCleanup = null;
+  }
+}
+
+function fetchDuckDuckGoJsonpSuggestions(query, requestId) {
+  return new Promise((resolve) => {
+    const callbackName = `ddgSuggest_${Date.now()}_${Math.random()
+      .toString(36)
+      .slice(2)}`;
+    const script = document.createElement("script");
+    let isDone = false;
+
+    const cleanup = () => {
+      if (isDone) return;
+      isDone = true;
+      if (window[callbackName]) {
+        delete window[callbackName];
+      }
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+      if (suggestionJsonpCleanup === cleanup) {
+        suggestionJsonpCleanup = null;
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+
+    const timeoutId = window.setTimeout(() => {
+      cleanup();
+      resolve([]);
+    }, SEARCH_SUGGESTION_JSONP_TIMEOUT_MS);
+
+    suggestionJsonpCleanup = cleanup;
+
+    window[callbackName] = (data) => {
+      cleanup();
+      if (requestId !== suggestionRequestId) {
+        resolve([]);
+        return;
+      }
+      resolve(normalizeSuggestionPayload(data));
+    };
+
+    script.async = true;
+    script.src = buildSuggestionUrl(query, callbackName);
+    script.onerror = () => {
+      cleanup();
+      resolve([]);
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+async function fetchRemoteSuggestions(query, requestId) {
+  const normalized = normalizeText(query);
+  if (!normalized) return [];
+
+  const cached = searchSuggestionCache.get(normalized);
+  if (cached) return cached;
+
+  const queryLower = normalized.toLowerCase();
+
+  if (suggestionAbortController) {
+    suggestionAbortController.abort();
+  }
+  clearPendingJsonp();
+
+  suggestionAbortController = new AbortController();
+
+  let cleaned = [];
+
+  try {
+    const response = await fetch(buildSuggestionUrl(normalized), {
+      signal: suggestionAbortController.signal,
+      headers: { Accept: "application/json" },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      cleaned = normalizeSuggestionPayload(data);
+    }
+  } catch (error) {
+    if (error?.name === "AbortError") return [];
+  }
+
+  if (!cleaned.length) {
+    cleaned = await fetchDuckDuckGoJsonpSuggestions(normalized, requestId);
+  }
+
+  cleaned = cleaned.filter(
+    (item) => item && item.toLowerCase() !== queryLower,
+  );
+
+  if (cleaned.length) {
+    searchSuggestionCache.set(normalized, cleaned);
+    if (searchSuggestionCache.size > 40) {
+      const oldestKey = searchSuggestionCache.keys().next().value;
+      searchSuggestionCache.delete(oldestKey);
+    }
+  }
+
+  return cleaned;
+}
+
+function cancelSuggestionRequests() {
+  if (suggestionDebounceId) {
+    clearTimeout(suggestionDebounceId);
+    suggestionDebounceId = null;
+  }
+
+  if (suggestionAbortController) {
+    suggestionAbortController.abort();
+    suggestionAbortController = null;
+  }
+
+  clearPendingJsonp();
+
+  suggestionRequestId += 1;
+}
+
+function scheduleSearchSuggestionsUpdate() {
+  if (!searchInput) return;
+  const query = normalizeText(searchInput.value);
+  if (!query) {
+    cancelSuggestionRequests();
+    hideSearchSuggestions();
+    return;
+  }
+
+  if (suggestionDebounceId) {
+    clearTimeout(suggestionDebounceId);
+  }
+
+  suggestionDebounceId = setTimeout(() => {
+    updateSearchSuggestions(query);
+  }, SEARCH_SUGGESTION_DEBOUNCE_MS);
+}
+
+async function updateSearchSuggestions(query) {
+  const requestId = ++suggestionRequestId;
+  const localSuggestions = buildLocalSuggestions(query);
+
+  if (localSuggestions.length) {
+    renderSearchSuggestions(localSuggestions);
+  }
+
+  let remoteSuggestions = [];
+  try {
+    remoteSuggestions = await fetchRemoteSuggestions(query, requestId);
+  } catch {
+    remoteSuggestions = [];
+  }
+
+  if (requestId !== suggestionRequestId) return;
+
+  const remoteItems = remoteSuggestions.map((item) => ({
+    type: "search",
+    label: item,
+    value: item,
+  }));
+
+  const merged = mergeSuggestions(localSuggestions, remoteItems);
+  renderSearchSuggestions(merged);
+}
+
 function setThemeClass(mode) {
   if (mode === "dark") {
     document.documentElement.classList.add("dark-theme");
@@ -670,9 +1126,58 @@ updateClock();
 
 if (searchInput) {
   searchInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && searchInput.value.trim()) {
-      window.location.href = `https://www.google.com/search?q=${encodeURIComponent(searchInput.value.trim())}`;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (searchSuggestionsEl?.classList.contains("hidden")) {
+        scheduleSearchSuggestionsUpdate();
+      }
+      moveActiveSuggestion(1);
+      return;
     }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveActiveSuggestion(-1);
+      return;
+    }
+
+    if (event.key === "Enter") {
+      if (suggestionState.activeIndex >= 0) {
+        event.preventDefault();
+        selectSuggestion(suggestionState.activeIndex);
+        return;
+      }
+
+      if (searchInput.value.trim()) {
+        event.preventDefault();
+        handleSearchSubmit(searchInput.value);
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      if (searchSuggestionsEl && !searchSuggestionsEl.classList.contains("hidden")) {
+        event.stopPropagation();
+        hideSearchSuggestions();
+      }
+    }
+  });
+
+  searchInput.addEventListener("input", () => {
+    scheduleSearchSuggestionsUpdate();
+  });
+
+  searchInput.addEventListener("focus", () => {
+    if (normalizeText(searchInput.value)) {
+      scheduleSearchSuggestionsUpdate();
+    }
+  });
+
+  searchInput.addEventListener("blur", () => {
+    cancelSuggestionRequests();
+    window.setTimeout(() => {
+      hideSearchSuggestions();
+    }, 120);
   });
 }
 

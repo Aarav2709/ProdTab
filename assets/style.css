@@ -62,6 +62,7 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   opacity: 0.03;
 }
+
 :root.dark-theme .noise {
   opacity: 0.03;
 }
@@ -78,9 +79,11 @@ body {
   opacity: 0.08;
   animation: none;
 }
+
 :root.dark-theme .math-bg {
   opacity: 0.05;
 }
+
 .math-bg circle,
 .math-bg ellipse,
 .math-bg line {
@@ -89,10 +92,12 @@ body {
   stroke-width: 1px;
   transition: stroke 0.8s ease;
 }
+
 @keyframes slowSpin {
   from {
     transform: translate(-50%, -50%) rotate(0deg);
   }
+
   to {
     transform: translate(-50%, -50%) rotate(360deg);
   }
@@ -115,6 +120,7 @@ body {
   transform: rotate(-45deg);
   animation: shootingStar 15s linear infinite backwards;
 }
+
 .comet {
   position: absolute;
   width: 200px;
@@ -125,20 +131,24 @@ body {
   transform: rotate(-30deg);
   animation: shootingStar 25s linear infinite backwards;
 }
+
 @keyframes shootingStar {
   0% {
     transform: translateX(100vw) translateY(-50vh) rotate(-45deg);
     opacity: 1;
   }
+
   10% {
     transform: translateX(-50vw) translateY(100vh) rotate(-45deg);
     opacity: 0;
   }
+
   100% {
     transform: translateX(-50vw) translateY(100vh) rotate(-45deg);
     opacity: 0;
   }
 }
+
 .floating-obj {
   position: absolute;
   stroke: var(--text-main);
@@ -147,10 +157,12 @@ body {
   opacity: 0.15;
   animation: floatObj 20s ease-in-out infinite alternate;
 }
+
 @keyframes floatObj {
   0% {
     transform: translateY(0) rotate(0deg);
   }
+
   100% {
     transform: translateY(-50px) rotate(15deg);
   }
@@ -165,14 +177,17 @@ body {
   opacity: 0.2;
   animation: fallRain linear infinite backwards;
 }
+
 @keyframes fallRain {
   0% {
     transform: translateY(-10vh);
   }
+
   100% {
     transform: translateY(110vh);
   }
 }
+
 .snow-flake {
   position: absolute;
   width: 4px;
@@ -182,14 +197,17 @@ body {
   opacity: 0.4;
   animation: fallSnow linear infinite backwards;
 }
+
 @keyframes fallSnow {
   0% {
     transform: translateY(-10vh);
   }
+
   100% {
     transform: translateY(110vh);
   }
 }
+
 .cloud {
   position: absolute;
   background: var(--text-muted);
@@ -197,14 +215,17 @@ body {
   opacity: 0.05;
   animation: driftCloud linear infinite;
 }
+
 @keyframes driftCloud {
   from {
     transform: translateX(-20vw);
   }
+
   to {
     transform: translateX(120vw);
   }
 }
+
 .thunder {
   position: absolute;
   inset: 0;
@@ -212,13 +233,16 @@ body {
   opacity: 0;
   animation: flash 10s infinite;
 }
+
 @keyframes flash {
+
   0%,
   95%,
   98%,
   100% {
     opacity: 0;
   }
+
   96%,
   99% {
     opacity: 0.1;
@@ -236,18 +260,21 @@ body {
   opacity: 0.4;
   animation: twinkle 1s infinite alternate;
 }
+
 @keyframes twinkle {
   0% {
     opacity: 0.2;
     transform: scale(0.9);
     box-shadow: 0 0 5px var(--accent);
   }
+
   100% {
     opacity: 0.8;
     transform: scale(1.1);
     box-shadow: 0 0 15px var(--accent);
   }
 }
+
 .xmas-tree {
   position: absolute;
   bottom: 0;
@@ -255,6 +282,7 @@ body {
   width: 150px;
   opacity: 0.6;
 }
+
 .bat {
   position: absolute;
   width: 60px;
@@ -262,17 +290,21 @@ body {
   opacity: 0.15;
   animation: flyBat 15s linear infinite;
 }
+
 @keyframes flyBat {
   0% {
     transform: translate(-10vw, 80vh) scale(0.5) rotate(15deg);
   }
+
   50% {
     transform: translate(50vw, 20vh) scale(1) rotate(-10deg);
   }
+
   100% {
     transform: translate(110vw, 50vh) scale(0.5) rotate(5deg);
   }
 }
+
 .halloween-glow {
   position: absolute;
   inset: 0;
@@ -453,6 +485,70 @@ body {
   border-bottom-color: var(--accent);
 }
 
+.search-suggestions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.45rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-base) 92%, transparent);
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.08);
+  z-index: 6;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.search-suggestion {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.search-suggestion:hover,
+.search-suggestion.is-active {
+  border-color: var(--border-hover);
+  background: var(--bg-card);
+  color: var(--accent);
+}
+
+.search-suggestion:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.suggestion-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion-meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
 /* Shortcuts */
 .tool-btn {
   border: 1px solid var(--border);
@@ -484,7 +580,7 @@ body {
 
 .shortcuts {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 1rem;
   width: 100%;
@@ -509,22 +605,27 @@ body {
   transform: translateY(15px);
   animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   min-width: 0;
-  width: min(175px, 20%);
-  flex: 0 1 min(175px, 20%);
+  width: clamp(150px, 18vw, 190px);
+  flex: 1 1 clamp(150px, 18vw, 190px);
+  max-width: 190px;
 }
 
 .shortcut:nth-child(1) {
   animation-delay: 0.15s;
 }
+
 .shortcut:nth-child(2) {
   animation-delay: 0.2s;
 }
+
 .shortcut:nth-child(3) {
   animation-delay: 0.25s;
 }
+
 .shortcut:nth-child(4) {
   animation-delay: 0.3s;
 }
+
 .shortcut:nth-child(5) {
   animation-delay: 0.35s;
 }
@@ -879,8 +980,11 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .shortcut,
   .weather,
+  .header,
+  .search-wrapper,
   .theme-icon,
   .meteor,
   .comet,
@@ -895,6 +999,14 @@ body {
     animation: none !important;
     transition: none !important;
   }
+
+  .shortcut,
+  .weather,
+  .header,
+  .search-wrapper {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @keyframes slideUp {
@@ -902,6 +1014,7 @@ body {
     opacity: 0;
     transform: translateY(15px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
