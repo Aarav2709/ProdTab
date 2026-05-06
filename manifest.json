@@ -1,33 +1,33 @@
 {
-    "manifest_version": 3,
-    "name": "ProdTab",
-    "version": "3.0.0",
-    "description": "ProdTab is a customizable browser startpage with onboarding, dynamic city weather, editable bookmarks, and light/dark themes, inspired by snes19xx.",
-    "chrome_url_overrides": {
-        "newtab": "index.html"
-    },
-    "chrome_settings_overrides": {
-        "homepage": "index.html"
-    },
-    "action": {
-        "default_popup": "extension-popup/popup.html",
-        "default_icon": {
-            "128": "assets/icons/icon.png"
-        }
-    },
-    "icons": {
-        "128": "assets/icons/icon.png"
-    },
-    "author": "tribejustice35@gmail.com",
-    "homepage_url": "https://github.com/Aarav2709/ProdTab",
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "{fbbaa869-22c1-452a-bc1d-6a019aac9de8}",
-            "data_collection_permissions": {
-                "required": [
-                    "none"
-                ]
-            }
-        }
+  "manifest_version": 3,
+  "name": "ProdTab",
+  "version": "3.1.0",
+  "description": "ProdTab is a customizable browser startpage with onboarding, dynamic city weather, editable bookmarks, and light/dark themes, inspired by snes19xx.",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "chrome_settings_overrides": {
+    "homepage": "index.html"
+  },
+  "action": {
+    "default_popup": "extension-popup/popup.html",
+    "default_icon": {
+      "128": "assets/icons/icon.png"
     }
+  },
+  "icons": {
+    "128": "assets/icons/icon.png"
+  },
+  "author": "tribejustice35@gmail.com",
+  "homepage_url": "https://github.com/Aarav2709/ProdTab",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{fbbaa869-22c1-452a-bc1d-6a019aac9de8}",
+      "data_collection_permissions": {
+        "required": [
+          "none"
+        ]
+      }
+    }
+  }
 }
