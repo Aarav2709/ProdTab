@@ -12,7 +12,6 @@
     rel="stylesheet" />
   <link rel="icon" type="image/png" href="./assets/icons/icon.png" />
   <link rel="stylesheet" href="./assets/style.css" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 </head>
 
 <body>
@@ -77,10 +76,7 @@
     </div>
 
     <div class="search-wrapper">
-      <input id="search" class="search-input" type="search" placeholder="Search..." autocomplete="off"
-        aria-autocomplete="list" aria-controls="search-suggestions" aria-expanded="false" autofocus />
-      <div class="search-suggestions hidden" id="search-suggestions" role="listbox" aria-label="Search suggestions"
-        aria-hidden="true"></div>
+      <input id="search" class="search-input" type="search" placeholder="Search..." autocomplete="off" autofocus />
     </div>
 
     <nav class="shortcuts" id="links"></nav>
@@ -89,8 +85,8 @@
   <div class="weather" id="weather" aria-live="polite">
     <span id="wx-temp">--°</span>
     <span id="wx-city"></span>
-    <button class="wx-unit-toggle" id="wx-unit-toggle" type="button" aria-label="Switch to Fahrenheit"
-      title="Switch to Fahrenheit">
+    <button class="wx-unit-toggle" id="wx-unit-toggle" type="button" aria-label="Switch temperature unit"
+      title="Switch temperature unit">
       C
     </button>
   </div>

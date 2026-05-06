@@ -837,9 +837,11 @@ body {
   font-family: "Plus Jakarta Sans", sans-serif;
 }
 
+
 .onboarding-card input:focus {
   border-bottom-color: var(--accent);
 }
+
 
 .onboarding-submit {
   margin-top: 0.8rem;

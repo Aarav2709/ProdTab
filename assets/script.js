@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
 const MAX_BOOKMARKS = 5;
 const WEATHER_CACHE_TTL_MS = 1000 * 60 * 45;
 const WEATHER_CACHE_FALLBACK_MS = 1000 * 60 * 60 * 24;
+const WEATHER_UNITS = ["C", "F", "K"];
 const LOW_POWER_DEVICE =
   (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
   (navigator.deviceMemory && navigator.deviceMemory <= 4);
@@ -24,6 +25,9 @@ const SEARCH_SUGGESTION_DEBOUNCE_MS = 180;
 const SEARCH_SUGGESTION_JSONP_TIMEOUT_MS = 2500;
 const SEARCH_ENGINE_URL = "https://duckduckgo.com/?q=";
 const SEARCH_SUGGESTION_ENDPOINT = "https://duckduckgo.com/ac/?type=list&q=";
+const ENABLE_REMOTE_SUGGESTIONS =
+  window.location.protocol === "http:" ||
+  window.location.protocol === "https:";
 
 const LEGACY_DEFAULT_BOOKMARKS = [
   { label: "Quercus", href: "https://q.utoronto.ca/" },
@@ -97,7 +101,6 @@ let lastInteractionTs = Date.now();
 let currentWeatherCode = 0;
 let weatherFetchInFlight = null;
 let suggestionDebounceId = null;
-let suggestionAbortController = null;
 let suggestionRequestId = 0;
 let suggestionJsonpCleanup = null;
 const searchSuggestionCache = new Map();
@@ -110,6 +113,41 @@ function normalizeText(value) {
   return String(value || "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function randomInt(min, max) {
+  const lower = Math.ceil(min);
+  const upper = Math.floor(max);
+  return Math.floor(Math.random() * (upper - lower + 1)) + lower;
+}
+
+function easeOutExpo(t) {
+  return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+}
+
+function normalizeWeatherUnit(unit) {
+  return WEATHER_UNITS.includes(unit) ? unit : "C";
+}
+
+function getNextWeatherUnit(unit) {
+  const normalized = normalizeWeatherUnit(unit);
+  const index = WEATHER_UNITS.indexOf(normalized);
+  return WEATHER_UNITS[(index + 1) % WEATHER_UNITS.length];
+}
+
+function updateWeatherUnitToggle() {
+  if (!wxUnitToggleBtn) return;
+
+  wxUnitToggleBtn.textContent = weatherUnit;
+  const nextUnit = getNextWeatherUnit(weatherUnit);
+  const nextLabelMap = {
+    C: "Switch to Celsius",
+    F: "Switch to Fahrenheit",
+    K: "Switch to Kelvin",
+  };
+  const nextLabel = nextLabelMap[nextUnit] || "Switch temperature unit";
+  wxUnitToggleBtn.setAttribute("aria-label", nextLabel);
+  wxUnitToggleBtn.setAttribute("title", nextLabel);
 }
 
 function safeStorageGet(key) {
@@ -174,12 +212,13 @@ function saveThemePreference(mode) {
 
 function loadWeatherUnit() {
   const raw = safeStorageGet(STORAGE_KEYS.weatherUnit);
-  return raw === "F" ? "F" : "C";
+  return normalizeWeatherUnit(raw);
 }
 
 function saveWeatherUnit(unit) {
-  weatherUnit = unit;
-  safeStorageSet(STORAGE_KEYS.weatherUnit, unit);
+  const normalized = normalizeWeatherUnit(unit);
+  weatherUnit = normalized;
+  safeStorageSet(STORAGE_KEYS.weatherUnit, normalized);
 }
 
 function loadWeatherCacheStore() {
@@ -231,17 +270,12 @@ function formatTemperature(tempCelsius) {
     return `${fahrenheit}°F`;
   }
 
+  if (weatherUnit === "K") {
+    const kelvin = Math.round(tempCelsius + 273.15);
+    return `${kelvin}K`;
+  }
+
   return `${Math.round(tempCelsius)}°C`;
-}
-
-function updateWeatherUnitToggle() {
-  if (!wxUnitToggleBtn) return;
-
-  wxUnitToggleBtn.textContent = weatherUnit;
-  const nextLabel =
-    weatherUnit === "C" ? "Switch to Fahrenheit" : "Switch to Celsius";
-  wxUnitToggleBtn.setAttribute("aria-label", nextLabel);
-  wxUnitToggleBtn.setAttribute("title", nextLabel);
 }
 
 function renderWeather() {
@@ -695,15 +729,6 @@ function buildLocalSuggestions(query) {
   if (!normalized) return [];
 
   const suggestions = [];
-  const directUrl = isLikelyUrlInput(query) ? normalizeUrl(query) : null;
-  if (directUrl) {
-    suggestions.push({
-      type: "url",
-      label: directUrl,
-      value: directUrl,
-      url: directUrl,
-    });
-  }
 
   bookmarks.forEach((bookmark) => {
     const label = normalizeText(bookmark.label);
@@ -939,38 +964,16 @@ function fetchDuckDuckGoJsonpSuggestions(query, requestId) {
 async function fetchRemoteSuggestions(query, requestId) {
   const normalized = normalizeText(query);
   if (!normalized) return [];
+  if (!ENABLE_REMOTE_SUGGESTIONS || isLikelyUrlInput(normalized)) return [];
 
   const cached = searchSuggestionCache.get(normalized);
   if (cached) return cached;
 
   const queryLower = normalized.toLowerCase();
 
-  if (suggestionAbortController) {
-    suggestionAbortController.abort();
-  }
   clearPendingJsonp();
 
-  suggestionAbortController = new AbortController();
-
-  let cleaned = [];
-
-  try {
-    const response = await fetch(buildSuggestionUrl(normalized), {
-      signal: suggestionAbortController.signal,
-      headers: { Accept: "application/json" },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      cleaned = normalizeSuggestionPayload(data);
-    }
-  } catch (error) {
-    if (error?.name === "AbortError") return [];
-  }
-
-  if (!cleaned.length) {
-    cleaned = await fetchDuckDuckGoJsonpSuggestions(normalized, requestId);
-  }
+  let cleaned = await fetchDuckDuckGoJsonpSuggestions(normalized, requestId);
 
   cleaned = cleaned.filter(
     (item) => item && item.toLowerCase() !== queryLower,
@@ -991,11 +994,6 @@ function cancelSuggestionRequests() {
   if (suggestionDebounceId) {
     clearTimeout(suggestionDebounceId);
     suggestionDebounceId = null;
-  }
-
-  if (suggestionAbortController) {
-    suggestionAbortController.abort();
-    suggestionAbortController = null;
   }
 
   clearPendingJsonp();
@@ -1126,58 +1124,13 @@ updateClock();
 
 if (searchInput) {
   searchInput.addEventListener("keydown", (event) => {
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      if (searchSuggestionsEl?.classList.contains("hidden")) {
-        scheduleSearchSuggestionsUpdate();
-      }
-      moveActiveSuggestion(1);
-      return;
-    }
-
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      moveActiveSuggestion(-1);
-      return;
-    }
-
     if (event.key === "Enter") {
-      if (suggestionState.activeIndex >= 0) {
-        event.preventDefault();
-        selectSuggestion(suggestionState.activeIndex);
-        return;
-      }
-
       if (searchInput.value.trim()) {
         event.preventDefault();
         handleSearchSubmit(searchInput.value);
       }
       return;
     }
-
-    if (event.key === "Escape") {
-      if (searchSuggestionsEl && !searchSuggestionsEl.classList.contains("hidden")) {
-        event.stopPropagation();
-        hideSearchSuggestions();
-      }
-    }
-  });
-
-  searchInput.addEventListener("input", () => {
-    scheduleSearchSuggestionsUpdate();
-  });
-
-  searchInput.addEventListener("focus", () => {
-    if (normalizeText(searchInput.value)) {
-      scheduleSearchSuggestionsUpdate();
-    }
-  });
-
-  searchInput.addEventListener("blur", () => {
-    cancelSuggestionRequests();
-    window.setTimeout(() => {
-      hideSearchSuggestions();
-    }, 120);
   });
 }
 
@@ -1201,12 +1154,11 @@ if (themeToggleBtn) {
 
 if (wxUnitToggleBtn) {
   wxUnitToggleBtn.addEventListener("click", () => {
-    const nextUnit = weatherUnit === "C" ? "F" : "C";
+    const nextUnit = getNextWeatherUnit(weatherUnit);
     saveWeatherUnit(nextUnit);
     renderWeather();
   });
 }
-
 renderWeather();
 
 renderBookmarks();
@@ -1373,9 +1325,9 @@ function startFireworks(customColors) {
   }
 
   function setParticuleDirection(particle) {
-    const angle = (anime.random(0, 360) * Math.PI) / 180;
-    const value = anime.random(50, 150);
-    const radius = [-1, 1][anime.random(0, 1)] * value;
+    const angle = (randomInt(0, 360) * Math.PI) / 180;
+    const value = randomInt(50, 150);
+    const radius = [-1, 1][randomInt(0, 1)] * value;
     return {
       x: particle.x + radius * Math.cos(angle),
       y: particle.y + radius * Math.sin(angle),
@@ -1387,8 +1339,11 @@ function startFireworks(customColors) {
     particle.x = x;
     particle.y = y;
     const colors = getColors();
-    particle.color = colors[anime.random(0, colors.length - 1)];
-    particle.radius = anime.random(8, 24);
+    particle.color = colors[randomInt(0, colors.length - 1)];
+    particle.radius = randomInt(8, 24);
+    particle.startX = x;
+    particle.startY = y;
+    particle.startRadius = particle.radius;
     particle.endPos = setParticuleDirection(particle);
     particle.draw = function () {
       ctx.beginPath();
@@ -1399,11 +1354,11 @@ function startFireworks(customColors) {
     return particle;
   }
 
-  function renderParticule(anim) {
+  function renderParticule(particles) {
     ctx.clearRect(0, 0, canvasEl.width / 2, canvasEl.height / 2);
-    for (let i = 0; i < anim.animatables.length; i++) {
-      anim.animatables[i].target.draw();
-    }
+    particles.forEach((particle) => {
+      particle.draw();
+    });
   }
 
   function animateParticules(x, y) {
@@ -1411,15 +1366,31 @@ function startFireworks(customColors) {
     for (let i = 0; i < numberOfParticules; i++) {
       particules.push(createParticule(x, y));
     }
-    anime.timeline().add({
-      targets: particules,
-      x: (particle) => particle.endPos.x,
-      y: (particle) => particle.endPos.y,
-      radius: 0.1,
-      duration: anime.random(1200, 1800),
-      easing: "easeOutExpo",
-      update: renderParticule,
-    });
+    const start = performance.now();
+    const duration = randomInt(1200, 1800);
+
+    const tick = (now) => {
+      const elapsed = now - start;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeOutExpo(progress);
+
+      particules.forEach((particle) => {
+        particle.x =
+          particle.startX + (particle.endPos.x - particle.startX) * eased;
+        particle.y =
+          particle.startY + (particle.endPos.y - particle.startY) * eased;
+        particle.radius =
+          particle.startRadius + (0.1 - particle.startRadius) * eased;
+      });
+
+      renderParticule(particules);
+
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      }
+    };
+
+    requestAnimationFrame(tick);
   }
 
   if (fireworksMouseDownHandler) {
@@ -1466,10 +1437,10 @@ function startFireworks(customColors) {
     const centerX = window.innerWidth / 2;
     const centerY = window.innerHeight / 2;
     animateParticules(
-      anime.random(centerX - 150, centerX + 150),
-      anime.random(centerY - 150, centerY + 150),
+      randomInt(centerX - 150, centerX + 150),
+      randomInt(centerY - 150, centerY + 150),
     );
-    autoFireworkTimeout = setTimeout(autoClick, anime.random(1800, 3200));
+    autoFireworkTimeout = setTimeout(autoClick, randomInt(1800, 3200));
   }
 
   setCanvasSize();
