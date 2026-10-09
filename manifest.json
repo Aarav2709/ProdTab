@@ -9,14 +9,11 @@
   "chrome_settings_overrides": {
     "homepage": "index.html"
   },
-  "action": {
-    "default_popup": "extension-popup/popup.html",
-    "default_icon": {
-      "128": "assets/icons/icon.png"
-    }
-  },
+  "permissions": ["search"],
   "icons": {
-    "128": "assets/icons/icon.png"
+    "48": "assets/icons/icon-48.png",
+    "96": "assets/icons/icon-96.png",
+    "128": "assets/icons/icon-128.png"
   },
   "author": "tribejustice35@gmail.com",
   "homepage_url": "https://github.com/Aarav2709/ProdTab",
@@ -24,9 +21,7 @@
     "gecko": {
       "id": "{fbbaa869-22c1-452a-bc1d-6a019aac9de8}",
       "data_collection_permissions": {
-        "required": [
-          "none"
-        ]
+        "required": ["locationInfo"]
       }
     }
   }

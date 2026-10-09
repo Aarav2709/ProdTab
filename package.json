@@ -1,0 +1,24 @@
+{
+  "name": "prodtab",
+  "private": true,
+  "description": "Development tooling for the ProdTab Firefox extension.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "scripts": {
+    "start": "web-ext run",
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "lint": "eslint . && web-ext lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm test",
+    "package": "web-ext build --overwrite-dest",
+    "update-tlds": "node scripts/update-tlds.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "web-ext": "^10.7.0"
+  }
+}

@@ -1,0 +1,10 @@
+# the hosted copy only needs the static page, and without package.json vercel skips installing dev tools
+node_modules
+web-ext-artifacts
+package.json
+package-lock.json
+eslint.config.mjs
+web-ext-config.mjs
+.prettierignore
+scripts
+tests

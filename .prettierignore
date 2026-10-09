@@ -1,0 +1,5 @@
+node_modules/
+web-ext-artifacts/
+package-lock.json
+assets/fonts/
+assets/js/tlds.js
