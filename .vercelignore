@@ -6,5 +6,3 @@ package-lock.json
 eslint.config.mjs
 web-ext-config.mjs
 .prettierignore
-scripts
-tests
